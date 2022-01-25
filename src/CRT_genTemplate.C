@@ -270,10 +270,10 @@ void Analysis::LoopOverEntries() {
           _intQ < charge_max             &&
           _teX2 > 0                      &&
           _teX2 < chi2_max               &&
-          _teT < 5                       &&
-          _teT > -5                      &&
-          _pkT - _teT > -8               &&
-          _pkT - _teT < 8 
+          _teT < 100                     &&
+          _teT > -100                    &&
+          _pkT - _teT > -5               &&
+          _pkT - _teT < 5 
         ) 
       { } else { continue; }  
 
