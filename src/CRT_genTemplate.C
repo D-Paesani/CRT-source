@@ -156,6 +156,7 @@ void fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag
   histObj->SetTitle(histTag + "fuzzyTempl");
   histObj->SetDrawOption("zcol");
   histObj->Draw("zcol");
+  templDraw_can->SetLogz();
   templDraw_can->Write(histTag + "fuzzyTempl");
 
   TCanvas *spline_can = new TCanvas(histTag + "spline"); 
