@@ -126,17 +126,17 @@ class HistBox{
         skipFlag = 0;
         histTag = Form(histTagFormat, k);
 
+        _histObj->SetName(_histosName);
+        _histObj->SetTitle(histTag + _histTitle);
+        _histObj->GetXaxis()->SetTitle(_label1.Data());
+        _histObj->GetYaxis()->SetTitle(_label2.Data());
+
         _outfile->cd();
         _histDir->cd();
 
         _processHistObj(_histObj, k, histTag, skipFlag);
 
         if (skipFlag) {continue;}
-
-        _histObj->SetName(_histosName);
-        _histObj->SetTitle(histTag + _histTitle);
-        _histObj->GetXaxis()->SetTitle(_label1.Data());
-        _histObj->GetYaxis()->SetTitle(_label2.Data());
 
         _outfile->cd();
         _histDir->cd();
