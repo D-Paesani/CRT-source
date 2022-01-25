@@ -56,6 +56,9 @@ HistManager HM;
   double  charge_max = 800;
   double  chi2_max = 10;
 
+  double  time_cut_low = -100;
+  double  time_cut_high = 100;
+
   const TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
 
   Long64_t max_evts = 1e10;
@@ -78,7 +81,7 @@ int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
 
 
 
-void experimental_fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
+void ALTERNATE_fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
 
   int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
   histTag = Form("[%d:%d] ",  iSd, iSc);
@@ -181,10 +184,39 @@ void fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag
 }
 
 
+void teTimes_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+  histTag = Form("[%d:%d] ",  iSd, iSc);
+  //histSkipFlag = 1;
+
+  TCanvas cc = TCanvas(histTag + "teTime"); cc.cd();
+  histObj->SetTitle(histTag + "teTime");
+  histObj->Draw();
+  
+  TLine l  = TLine(time_cut_low,  histObj->GetMaximum(), time_cut_low, 0); 
+  TLine ll = TLine(time_cut_high, histObj->GetBinContent(histObj->GetMaximumBin()), time_cut_high, 0);   
+  l.SetLineColor(kRed); ll.SetLineColor(kRed); l.Draw("same"); ll.Draw("same");
+
+  cc.Write(histTag + "cut_teTime");
+
+}
+
+
+void tDiff_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+  histTag = Form("[%d:%d] ",  iSd, iSc);
+
+}
+
+
 void createHistBoxes() {
   HM.HistBoxes = {
     
-    HM.AddHistBox("fuzzyTempl", 2, 2*scintNum, "Fuzzy template", "Time [ns]", "Normalised pulse", ti_bins, ti_from, ti_to, amp_bins, amp_from, amp_to, &fuzzyTemp_proc)
+    HM.AddHistBox("fuzzyTempl", 2, 2*scintNum, "Fuzzy template", "Time [ns]", "Normalised pulse", ti_bins, ti_from, ti_to, amp_bins, amp_from, amp_to, &fuzzyTemp_proc),
+    HM.AddHistBox("teTimes", 1,    2*scintNum, "Reco times",     "Time", "ns",  600, -150, 150, 1, 0, 0, &teTimes_proc),
+    HM.AddHistBox("tiDiff", 1,     2*scintNum, "Tpeak - Ttempl", "Time", "ns",  600, -150, 150, 1, 0, 0, &tDiff_proc)
 
   };
 }
@@ -264,20 +296,22 @@ void Analysis::LoopOverEntries() {
       double _teT = templTime[hit] - teTOffset[hitN];
       double _teX2 = templChi2[hit];
 
+      HM.Fill1d("tiDiff", hitN, _pkT - _teT);
+      HM.Fill1d("teTimes", hitN, _teT);
+
       if ( //add rms
           !Selection.isSaturated(_pkV)   &&
           _intQ > charge_min             &&
           _intQ < charge_max             &&
           _teX2 > 0                      &&
           _teX2 < chi2_max               &&
-          _teT < 100                     &&
-          _teT > -100                    &&
+          _teT < time_cut_high           &&
+          _teT > time_cut_low            &&
           _pkT - _teT > -5               &&
           _pkT - _teT < 5 
         ) 
       { } else { continue; }  
-
- 
+      
       for(int tt=start_time; tt<stop_time; tt++){ 
 
         double ttt = (double)ana::time[tt] - _teT + templ_offs;
