@@ -45,7 +45,7 @@ HistManager HM;
   int stop_time = 300;
   double  templ_offs = 0;
 
-  int     ti_bins = 3200;
+  int     ti_bins = 1600;
   double  ti_from = 0;
   double  ti_to = 800;
   int     amp_bins = 1200;
@@ -202,8 +202,8 @@ void Analysis::LoopOverEntries() {
     int iSd = (int)((k+1)>scintNum), iSc = k - (iSd==1)*scintNum; 
     TString histTag = Form("[%d:%d] ",  iSd, iSc);
 
-    TH1F teT_temp = TH1F("teT_temp", "teT_temp", 150, 10, 500);
-    TH1F pkT_temp = TH1F("pkT_temp", "pkT_temp", 150, 10, 500);
+    TH1F teT_temp = TH1F("teT_temp", "teT_temp", 100, 10, 500);
+    TH1F pkT_temp = TH1F("pkT_temp", "pkT_temp", 100, 10, 500);
 
     fChain->Draw("templTime>>teT_temp",  preCut + Form(" && iSide == %i && iScint == %i", iSd, iSc), "goff");
     fChain->Draw("Tval>>pkT_temp",       preCut + Form(" && iSide == %i && iScint == %i", iSd, iSc), "goff");
