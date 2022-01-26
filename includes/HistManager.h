@@ -148,7 +148,7 @@ class HistBox{
       _outfile->cd();
       _histosDir->cd();
 
-      if(_histType == 1) {
+      if(_histType == 1) { //togliere questa cagata
       TCanvas *temp_c = new TCanvas(_histosName, _histosName); 
       temp_c->cd(); 
       _histosObj->Draw("zcol");
