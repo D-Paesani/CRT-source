@@ -24,3 +24,16 @@ schema cartelle (da ricrearsi quando si scarica la repo CRT-source):
     - - questo file README
     - - files .C
   - x
+
+
+
+L'analisi (step3) è divisa in 3 parti:
+step3 p1 (salva i picchi delle landau e gli offset temporali in data/calibration/luts_s3p e i plot in data/step3p )
+step3 p2 (salva gli offset in Z in data/calibration/luts_s3p )
+step3 (l'analisi vera e propria)
+
+Per lanciare tutte le 3 parti in sequenza, si può eseguire per esempio:
+launcher/CRT_step3all.csh run182
+
+I risultati dello step2 (i vecchi run182_ana.root) vanno in data/step2/run182_s2.root
+in data/step1 verrà messo un symlink alla cartella coi txt, semmai dovessimo fare da capo anche lo step2 
