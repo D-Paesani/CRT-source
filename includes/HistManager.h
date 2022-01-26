@@ -187,7 +187,7 @@ class HistManager{
     );
 
     unordered_map<string, HistBox *> HistBoxes;
-    
+
     TH1  *GetHist(string name) {return (TH1*)HistBoxes[name]->GetHistosObj();}
     TH3F *GetHist2d(string name) {return (TH3F*)HistBoxes[name]->GetHistosObj();}
     TH2F *GetHist1d(string name) {return (TH2F*)HistBoxes[name]->GetHistosObj();}
