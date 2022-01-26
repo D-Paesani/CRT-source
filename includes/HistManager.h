@@ -54,7 +54,7 @@ class HistBox{
     TH1 *_histObj;
     int _histType, _histN;
 
-    TString histTag, histTagFormat = "[%d] ";
+    TString histTag, histTagFormat = "_%d_";
     int skipFlag = 0;
 
     void (* _processHistObj)(TH1*, int, TString&, int&) = &_processHistObj_doNothing;
@@ -127,7 +127,6 @@ class HistBox{
         histTag = Form(histTagFormat, k);
 
         _histObj->SetName(_histosName);
-        _histObj->SetTitle(histTag + _histTitle);
         _histObj->GetXaxis()->SetTitle(_label1.Data());
         _histObj->GetYaxis()->SetTitle(_label2.Data());
 
@@ -135,6 +134,8 @@ class HistBox{
         _histDir->cd();
 
         _processHistObj(_histObj, k, histTag, skipFlag);
+
+        _histObj->SetTitle(histTag + _histTitle);
 
         if (skipFlag) {continue;}
 
