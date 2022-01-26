@@ -21,6 +21,6 @@ schema cartelle (da ricrearsi quando si scarica la repo CRT-source):
     - .git
     - launcher
     - includes
-    -- questo file README
-    -- files .C
+    - - questo file README
+    - - files .C
   - x
