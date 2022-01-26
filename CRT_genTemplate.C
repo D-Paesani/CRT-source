@@ -25,7 +25,7 @@
 using namespace std;
 
 CsvHandler CSV;
-MipSelection Selection; 
+MipSelection Selection;
 HistManager HM;
 
 
@@ -90,12 +90,12 @@ void ALTERNATE_fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& hi
   histObj->SetTitle(name_templ);
   histObj->SetDrawOption("zcol");
 
-  TCanvas *templDraw_can = new TCanvas(name_templ); 
+  TCanvas *templDraw_can = new TCanvas(name_templ);
   histObj->Draw("zcol");
-  templDraw_dir->cd();  
+  templDraw_dir->cd();
   templDraw_can->Write(name_templ);
 
-  TCanvas *spline_can = new TCanvas(name_spl); 
+  TCanvas *spline_can = new TCanvas(name_spl);
   spline_can->cd();
 
   TProfile *teProf = ((TH2*)histObj)->ProfileX();
@@ -191,7 +191,7 @@ void teTimes_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) 
   histTag = Form("[%d:%d] ",  iSd, iSc);
   //histSkipFlag = 1;
 
-  TCanvas cc = TCanvas(histTag + "teTime"); cc.cd();
+  TCanvas cc(histTag + "teTime", histTag + "teTime"); cc.cd();
   histObj->SetTitle(histTag + "teTime");
   histObj->Draw();
   

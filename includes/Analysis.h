@@ -61,6 +61,6 @@ void Analysis::Run(TString infile, TString outfile, TString runName, TString cal
   Analysis *a = new Analysis(infile, f, runName, calName, window_close_handle);
 
   a->Loop();
-  
+
   if (window_close_handle != -1)  myapp->Run(true);
 }

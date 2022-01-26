@@ -103,7 +103,7 @@ class HistBox{
     void ProcessBox(){
       
       _outfile->cd();
-      _histDir = _outfile->mkdir(_histosName);
+      _histDir = _outfile->mkdir(_histosName, "recreate");
       _histDir->cd();
 
       for (int k = 0; k < _histN; k++) { 
