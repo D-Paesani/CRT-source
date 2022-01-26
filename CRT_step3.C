@@ -315,8 +315,9 @@ void Analysis::LoopOverEntries() {
     for(int hit = 0; hit < nCry; hit++){
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint; 
-      double chCal = chEqReference/chargeEqual[hitSide][hitScint];
-      //chCal = (chCal>0.8 && chCal<1.2)?chCal:1;
+      double chCal = chEqReference/chargeEqual[hitSide][hitScint]; // si può anche preparare fuori dal for
+      //chCal = (chCal>0.8 && chCal<1.2)?chCal:1; // da togliere
+      chCal = 1; //// no offline eq 
 
       intQ[hitN] = Qval[hit]*chCal;
       pkV[hitN] = Vmax[hit];
