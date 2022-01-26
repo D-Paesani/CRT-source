@@ -37,3 +37,9 @@ launcher/CRT_step3all.csh run182
 
 I risultati dello step2 (i vecchi run182_ana.root) vanno in data/step2/run182_s2.root
 in data/step1 verrà messo un symlink alla cartella coi txt, semmai dovessimo fare da capo anche lo step2 
+
+
+cose da fare:
+- sistemare il nome histTag, mettendo una funzione virtuale che cambia il formato una tantum per tutta la class, da definire dentro i .C dove si fa il loop. 
+Se ci sono histboxes "diversi", si gestisce dentro processObj
+- definire due costruttori per TH1 e TH2 (leggere da codice vecchio)
