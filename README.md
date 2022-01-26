@@ -1,7 +1,11 @@
 # CRT-source
 
 per scaricare la repo e creare tutte le cartelle:
+
+
 curl https://raw.githubusercontent.com/D-Paesani/CRT-source/main/download_repo.sh  | bash
+
+
 schema cartelle (da ricrearsi quando si scarica la repo CRT-source):
 - CRT-analysis
   - data
