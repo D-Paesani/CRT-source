@@ -33,7 +33,7 @@ HistManager HM;
   TString run_name  = "run182";
   TString in_path   = "./data/step2/";
   TString out_path  = "./data/template/";
-  TString cal_name  = "run182";
+  TString cal_name  = "run182"; //not used
   TString out_pre   = "genTemp_";
 
   TString argv1 = in_path + run_name + "_s2.root";
