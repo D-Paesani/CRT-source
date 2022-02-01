@@ -136,7 +136,7 @@ void createHistBoxes() {
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",  "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
     HM.AddHistBox("th1f", scintNum, "zetaMip", "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th2f", 2*scintNum, "q_chi2", "MIP q vs chi2",    "charge", "pC", "chi2", "",          qBins/2, qFrom, qTo, 100, 0, 40);
-    HM.AddHistBox("th2f", scintNum, "zeta_q", "MIP q vs Z",       "zeta", "cm", "charge", "pC",      160, -scintL, scintL, 0.5*qBins, qFrom, qTo);
+    HM.AddHistBox("th2f", 2*scintNum, "zeta_q", "MIP q vs Z",       "zeta", "cm", "charge", "pC",      160, -scintL, scintL, qBins/2, qFrom, qTo);
     HM.AddHistBox("th2f", scintNum, "qSharing", "Sharing",          "Q_i", "pC", "Q_neighbours", "pC", 50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
 
 }
@@ -163,7 +163,9 @@ void fill_mip(int iScHit) {
   HM.Fill1d("pedMip", iScHit+scintNum, ped[iScHit+scintNum]);
   HM.Fill1d("zetaMip", iScHit, zeta);
 
-  HM.Fill2d("zeta_q", iScHit, zeta, teQ[iScHit]);
+  HM.Fill2d("zeta_q", iScHit, zeta, intQ[iScHit]);
+  HM.Fill2d("zeta_q", iScHit+scintNum, zeta, intQ[iScHit+scintNum]);
+
   HM.Fill2d("q_chi2", iScHit,  teX2[iScHit], teQ[iScHit]);
 
   jTrig_out = jentry; iSc_out = iScHit;

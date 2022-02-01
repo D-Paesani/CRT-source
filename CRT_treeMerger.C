@@ -3,6 +3,8 @@
 #include <TList.h>
 
 
+// va modificato -- i path sono sbagliati
+
 void CRT_treeMerger(){
 
   TString inPath =    "./step2/";

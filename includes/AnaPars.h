@@ -20,7 +20,7 @@
     const float scintVp = 12.5;
     const float scintL = 160.0;
 
-    const double minQCut = 200;
+    const double minQCut = 50;
     const double maxQCut = 100000;
     const double maxVpeak = 1800;
     const double maxChi2 = 200000;
