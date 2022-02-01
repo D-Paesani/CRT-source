@@ -19,6 +19,7 @@
 #include "includes/MipSelection.h"
 #include "includes/templ2charge.h"
 #include "includes/HistManager.h"
+#include "includes/NumberingHelper.h"
 
 
 using namespace std;
@@ -37,10 +38,7 @@ int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
 
 
 
-void chargeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1); 
 
@@ -64,15 +62,13 @@ void chargeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
   TF1 l4 = TF1("l", "landau", pk-0.8*sigma, pk+4*sigma);   l4.SetParameters(l3.GetParameter(0), l3.GetParameter(1), sigma);  histObj->Fit(&l4, "R");
   
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
   chargeEqual_out[iSd][iSc] = l4.GetParameter(1);
   chargeEqualErr_out[iSd][iSc] = l4.GetParError(1);
 
 }
 
-void timeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void timeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
 
@@ -83,14 +79,12 @@ void timeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) 
 
   histObj->Fit(&timeFit, "R");
 
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
   timeOffset[iSd][iSc] = timeFit.GetParameter(1);
 
 }
 
-void zetaMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
 
@@ -114,25 +108,16 @@ void zetaMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) 
 
 }
 
-void setHistTag2_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-
-}
-
 
 void createHistBoxes() {
-  HM.HistBoxes = {
 
-    HM.AddHistBox("chargeRaw",   1, 2*scintNum,  "Raw charges",      "charge", "pC",    qBins, 20, qTo,         1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("chargeMip",   1, 2*scintNum,  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo,      1, 0, 0,   &chargeMip_proc),
-    HM.AddHistBox("chargeTeMip", 1, 2*scintNum,  "MIP template q",   "charge", "pC",    qBins, qFrom, qTo,      1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("voltPeak",    1, 2*scintNum,  "Wave peak",        "ampl", "V",       100, 0, 2000,           1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("timeMip",     1, 2*scintNum,  "Mip times",        "time", "ns",      100, -30, 30,           1, 0, 0,   &timeMip_proc),
-    HM.AddHistBox("zetaMip",     1,   scintNum,  "Mip zetas",        "zeta", "cm",      320, -scintL, scintL,   1, 0, 0,   &zetaMip_proc),
+    HM.AddHistBox("th1f", 2*scintNum, "chargeRaw", "Raw charges",      "charge", "pC",    qBins, 20, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeMip", "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip",  "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "voltPeak",  "Wave peak",        "ampl", "V",       100, 0, 2000);
+    HM.AddHistBox("th1f", 2*scintNum, "timeMip",   "Mip times",        "time", "ns",      100, -30, 30, &timeMip_proc);
+    HM.AddHistBox("th1f", scintNum, "zetaMip",  "Mip zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
 
-  };
 }
 
 
@@ -311,6 +296,7 @@ void Analysis::Loop(){
 
   cout<<"Creating histograms:"<<endl;
   HM.SetOutFile(outFile);
+  HM.SetNamerFun(&NamerMatrix);
   createHistBoxes();
   cout<<"...done"<<endl<<endl;
 

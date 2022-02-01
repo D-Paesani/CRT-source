@@ -21,6 +21,8 @@
 #include "includes/MipSelection.h"
 #include "includes/templ2charge.h"
 #include "includes/HistManager.h"
+#include "includes/NumberingHelper.h"
+
 
 using namespace std;
 
@@ -80,100 +82,33 @@ void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNu
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
 
 
+void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
-void ALTERNATE_fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
+  TString histName = histObj->GetName();
 
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-  TString name_spl = histTag + "spline";
-  TString name_templ = histTag + "fuzzyTempl";
-  histObj->SetTitle(name_templ);
-  histObj->SetDrawOption("zcol");
-
-  TCanvas *templDraw_can = new TCanvas(name_templ);
-  histObj->Draw("zcol");
-  templDraw_dir->cd();
-  templDraw_can->Write(name_templ);
-
-  TCanvas *spline_can = new TCanvas(name_spl);
-  spline_can->cd();
-
-  TProfile *teProf = ((TH2*)histObj)->ProfileX();
-  TSpline5 *teSpline = new TSpline5(teProf);
-  TGraphSmooth *gs = new TGraphSmooth("normal"); //supsmu
-  TGraph* teSplGr = new TGraph();
-  TGraph* teSplGrSmooth = new TGraph();
-
-  for(int tt=0; tt<teProf->GetNbinsX(); tt++){ 
-    teSplGr->SetPoint(tt, teProf->GetBinCenter(tt), teProf->GetBinContent(tt));
-  }
-
-  teSplGrSmooth = gs->SmoothSuper(teSplGr, "", 0.1, 0.002);
-  TSpline5 *teSplineSmooth = new TSpline5("grs", teSplGrSmooth);
-
-  teProf->SetName(histTag + "Profile");  
-  teSpline->SetName(name_spl);
-  teSplineSmooth->SetName(name_spl + "Smoothed");
-  teSplGr->SetName(name_spl);
-  teSplGrSmooth->SetName(name_spl + "Smoothed");
-
-  teSpline->SetLineColor(kOrange);
-  teSplineSmooth->SetLineColor(kGreen);
-  teSplGrSmooth->SetMarkerColor(kPink);
-
-  teSplGrSmooth->SetMarkerStyle(2);
-  teSplGrSmooth->SetMarkerSize(.5);
-
-  teProf->Draw();
-  teSpline->Draw("L same");
-  teSplineSmooth->Draw("L same");
-  teSplGrSmooth->Draw("P same");
-  
-  splineDraw_dir->cd();  
-  spline_can->Write(name_spl);
-
-  TGraph* out_spline = new TGraph(); //da allineare
-  out_spline = teSplGr;
-
-  out_spline->SetMarkerStyle(8);
-  out_spline->SetMarkerSize(.5);
-  out_spline->SetMarkerColor(kOrange);
-  out_spline->SetLineColor(kNone);
-
-  spline_dir->cd();
-  out_spline->Write(name_spl);
-
-}
-
-
-void fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-
-  TCanvas *templDraw_can = new TCanvas(histTag + "fuzzyTempl"); 
+  TCanvas *templDraw_can = new TCanvas(histName);
   templDraw_dir->cd();  
-  histObj->SetTitle(histTag + "fuzzyTempl");
+  histObj->SetTitle(histName);
   histObj->SetDrawOption("zcol");
   histObj->Draw("zcol");
   templDraw_can->SetLogz();
-  templDraw_can->Write(histTag + "fuzzyTempl");
+  templDraw_can->Write();
 
-  TCanvas *spline_can = new TCanvas(histTag + "spline"); 
+  TCanvas *spline_can = new TCanvas(histName + "spline"); 
   spline_can->cd();
 
   TProfile *teProf = ((TH2*)histObj)->ProfileX();
   TSpline5 *teSpline = new TSpline5(teProf);
   TGraphErrors *teSplGr = (TGraphErrors*)(((TH2*)histObj)->ProfileX());
 
-  teProf->SetName(histTag + "Profile");  
-  teSpline->SetName(histTag + "spline");
+  teProf->SetName(histName + "Profile");  
+  teSpline->SetName(histName + "spline");
   teSpline->SetLineColor(kOrange);
   teProf->Draw();
   teSpline->Draw("L same");
   
   splineDraw_dir->cd();  
-  spline_can->Write(histTag + "spline");
+  spline_can->Write();
 
   teSplGr->SetMarkerStyle(8);
   teSplGr->SetMarkerSize(.5);
@@ -181,45 +116,32 @@ void fuzzyTemp_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag
   teSplGr->SetLineColor(kOrange);
 
   spline_dir->cd();
-  teSplGr->Write(histTag + "spline");
+  teSplGr->Write(histName + "graph");
 }
 
 
-void teTimes_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
+void teTimes_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-  //histSkipFlag = 1;
+  TString histName = histObj->GetName();
 
-  TCanvas cc(histTag + "teTime", histTag + "teTime"); cc.cd();
-  histObj->SetTitle(histTag + "teTime");
+  TCanvas cc(histName + "cut_teTime", histName + "cut_teTime"); cc.cd();
+  histObj->SetTitle(histName);
   histObj->Draw();
   
   TLine l  = TLine(time_cut_low,  histObj->GetMaximum(), time_cut_low, 0); 
   TLine ll = TLine(time_cut_high, histObj->GetBinContent(histObj->GetMaximumBin()), time_cut_high, 0);   
   l.SetLineColor(kRed); ll.SetLineColor(kRed); l.Draw("same"); ll.Draw("same");
 
-  cc.Write(histTag + "cut_teTime");
+  cc.Write();
 
 }
-
-
-void tDiff_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-
-}
-
 
 void createHistBoxes() {
-  HM.HistBoxes = {
     
-    HM.AddHistBox("fuzzyTempl", 2, 2*scintNum, "Fuzzy template", "Time [ns]", "Normalised pulse", ti_bins, ti_from, ti_to, amp_bins, amp_from, amp_to, &fuzzyTemp_proc),
-    HM.AddHistBox("teTimes", 1,    2*scintNum, "Reco times",     "Time", "ns",  600, -150, 150, 1, 0, 0, &teTimes_proc),
-    HM.AddHistBox("tiDiff", 1,     2*scintNum, "Tpeak - Ttempl", "Time", "ns",  600, -150, 150, 1, 0, 0, &tDiff_proc)
+  HM.AddHistBox("th2f", 2*scintNum, "fuzzyTempl","Fuzzy template", "Time", "ns", "Normalised pulse", "", ti_bins, ti_from, ti_to, amp_bins, amp_from, amp_to, &fuzzyTemp_proc);
+  HM.AddHistBox("th1f", 2*scintNum, "teTimes", "Reco times",     "Time", "ns",  600, -150, 150, &teTimes_proc);
+  HM.AddHistBox("th1f", 2*scintNum, "tiDiff", "Tpeak - Ttempl", "Time", "ns",  600, -150, 150);
 
-  };
 }
 
 
@@ -336,6 +258,7 @@ void Analysis::Loop(){
 
   cout<<"Creating histograms:"<<endl;
   HM.SetOutFile(outFile);
+  HM.SetNamerFun(&NamerMatrix);
   createHistBoxes();
   cout<<"...done"<<endl<<endl;
 

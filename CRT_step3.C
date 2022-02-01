@@ -19,6 +19,7 @@
 #include "includes/MipSelection.h"
 #include "includes/templ2charge.h"
 #include "includes/HistManager.h"
+#include "includes/NumberingHelper.h"
 
 using namespace std;
 
@@ -37,10 +38,7 @@ TTree *CRTs3;
 
 
 
-void chargeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1); 
 
@@ -64,15 +62,14 @@ void chargeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
   TF1 l4 = TF1("l", "landau", pk-0.8*sigma, pk+4*sigma);   l4.SetParameters(l3.GetParameter(0), l3.GetParameter(1), sigma);  histObj->Fit(&l4, "R");
   
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+
   chargeEqual_out[iSd][iSc] = l4.GetParameter(1);
   chargeEqualErr_out[iSd][iSc] = l4.GetParError(1);
 
 }
 
-void timeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void timeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
 
@@ -83,14 +80,13 @@ void timeMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) 
 
   histObj->Fit(&timeFit, "R");
 
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+
   timeOffset_out[iSd][iSc] = timeFit.GetParameter(1);
 
 }
 
-void pedMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void pedMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
 
@@ -100,10 +96,7 @@ void pedMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {
 
 }
 
-void zetaMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
+void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
 
@@ -127,38 +120,25 @@ void zetaMip_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) 
 
 }
 
-void qSharing_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
+void qSharing_proc(TH1* histObj, int histN, int& histSkipFlag) {   
   if (histN == 0 || histN == scintNum - 1) {histSkipFlag=1;}
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-
 }
 
-void setHistTag2_proc(TH1* histObj, int histN, TString& histTag, int& histSkipFlag) {   
-
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
-  histTag = Form("[%d:%d] ",  iSd, iSc);
-
-}
 
 
 void createHistBoxes() {
-  HM.HistBoxes = {
 
-    HM.AddHistBox("chargeRaw",   1, 2*scintNum,  "Raw charges",      "charge", "pC",    qBins, 20, qTo,         1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("chargeMip",   1, 2*scintNum,  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo,      1, 0, 0,   &chargeMip_proc),
-    HM.AddHistBox("chargeTeMip", 1, 2*scintNum,  "MIP template q",   "charge", "pC",    qBins, qFrom, qTo,      1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("pedMip",      1, 2*scintNum,  "Pedestal",         "charge", "pC",    100, -10, 10,           1, 0, 0,   &pedMip_proc),
-    HM.AddHistBox("voltPeak",    1, 2*scintNum,  "Wave peak",        "ampl", "V",       100, 0, 2000,           1, 0, 0,   &setHistTag2_proc),
-    HM.AddHistBox("timeMip",     1, 2*scintNum,  "MIP times",        "time", "ns",      100, -30, 30,           1, 0, 0,   &timeMip_proc),
-    HM.AddHistBox("zetaMip",     1,   scintNum,  "MIP zetas",        "zeta", "cm",      320, -scintL, scintL,   1, 0, 0,   &zetaMip_proc),
+    HM.AddHistBox("th1f", 2*scintNum, "chargeRaw", "Raw charges",      "charge", "pC",    qBins, 20, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeMip",  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip", "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "pedMip", "Pedestal",         "charge", "pC",    100, -10, 10, &pedMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "voltPeak", "Wave peak",        "ampl", "V",       100, 0, 2000);
+    HM.AddHistBox("th1f", 2*scintNum, "timeMip",  "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
+    HM.AddHistBox("th1f", scintNum, "zetaMip", "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    HM.AddHistBox("th2f", 2*scintNum, "q_chi2", "MIP q vs chi2",    "charge", "pC", "chi2", "",          qBins/2, qFrom, qTo, 100, 0, 40);
+    HM.AddHistBox("th2f", scintNum, "zeta_q", "MIP q vs Z",       "zeta", "cm", "charge", "pC",      160, -scintL, scintL, 0.5*qBins, qFrom, qTo);
+    HM.AddHistBox("th2f", scintNum, "qSharing", "Sharing",          "Q_i", "pC", "Q_neighbours", "pC", 50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
 
-    HM.AddHistBox("q_chi2",      2,   scintNum,  "MIP q vs chi2",    "charge [pC]", "chi2",           0.5*qBins, qFrom, qTo, 100, 0, 40),
-    HM.AddHistBox("zeta_q",      2,   scintNum,  "MIP q vs Z",       "zeta [cm]", "charge [pC]",      160, -scintL, scintL, 0.5*qBins, qFrom, qTo),
-    HM.AddHistBox("qSharing",    2,   scintNum,  "Sharing",          "Q_i [pC]", "Q_neighbours [pC]", 50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc)
-
-  };
 }
 
 
@@ -295,7 +275,7 @@ void Analysis::ProcessPlots() {
 void Analysis::LoopOverEntries() {
 
   nentries = fChain->GetEntriesFast(); 
-  Long64_t etp = min(maxEvToProcess3p1, nentries);
+  Long64_t etp = min(maxEvToProcess3, nentries);
   cout << "Number of events to process: " << etp << endl << endl;
   nbytes = 0, nb = 0;
     
@@ -373,6 +353,7 @@ void Analysis::Loop(){
 
   cout<<"Creating histograms:"<<endl;
   HM.SetOutFile(outFile);
+  HM.SetNamerFun(&NamerMatrix);
   createHistBoxes();
   cout<<"...done"<<endl<<endl;
 
@@ -406,8 +387,8 @@ void Analysis::Loop(){
 
   outFile->cd();
   CRTs3->Write();
-  outFile->Close();
 
+  HM.CloseOutFile();
   cout<<endl<<endl<<"::::::::::::::::::::: analysis done :::::::::::::::::::::"<<endl<<endl;
 }
 
