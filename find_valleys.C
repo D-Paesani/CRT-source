@@ -53,6 +53,7 @@ void find_valleys(){
   createHistBoxes();
 
   double curr_z_low_edge, curr_z_high_edge;
+  double points[2*scintNum][ngoodslices];
 
   for(int iSc = 0; iSc < 8; iSc ++){
     for(int iSd = 0; iSd < 2; iSd++){
@@ -100,27 +101,15 @@ void find_valleys(){
       ge->SetMarkerSize(1);
       ge->SetName(Form("ge%i%i", iSd, iSc));
       TF1 cut("cut", "expo(0)+pol1(2)");
-      /*
-      if(iSd==0){
-        cut.SetParameters(6.55, -0.00603, -393, 2.64);
-        cut.SetParLimits(0, 4, 8);
-        cut.SetParLimits(1, -0.009, -0.004);
-        cut.SetParLimits(2, -500, -200);
-        cut.SetParLimits(3, 1, 3);
-      }
-      else{
-        cut.SetParameters(6.20, 0.00744, -156, -2);
-        cut.SetParLimits(0, 4, 8);
-        cut.SetParLimits(1, 0.005, 0.009);
-        cut.SetParLimits(2, -300, -50);
-        cut.SetParLimits(3, -3, -1);        
-      }*/
+
       ge->Fit(&cut);
       ge->Draw("p same");
       ge->Write();
       c->Write();
     }
   }
+
+  CsvHandler.Write("../data/calibration/luts_s3p/cut.csv", ",", mat, 16, 4, 4);
 
   HM.CloseOutFile();
 
