@@ -55,6 +55,14 @@ public:
 
   int isTimeGood(double T) { return 1;}
 
+  int ismuon(double Q, double Z, int iSd){
+    TF1 cut("cut", "expo(0)+pol1(2)");
+    if (iSd==0) cut.SetParameters(6, -0.007, -124, 1.53);
+    else cut.SetParameters(7, 0.0044, -760, -3.3);
+    int good = (Q > cut.Eval(Z));
+    return good;
+  }
+
   int applyMipCuts() { return 1;} //whole mip selection
 
 

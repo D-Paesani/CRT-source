@@ -339,6 +339,7 @@ void Analysis::LoopOverEntries() {
     zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
 
     if ( !Selection.isZetaGood(zeta) ) {continue;}
+    if(!Selection.ismuon(intQ[iScHit], zeta, 0) || !Selection.ismuon(intQ[iScHit+scintNum], zeta, 1)) {continue;}
 
     fill_mip(iScHit);    
   }
