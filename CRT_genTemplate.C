@@ -32,7 +32,7 @@ HistManager HM;
 
 
 //Pars
-  TString run_name  = "run182";
+  TString run_name  = "run205";
   TString in_path   = "./data/step2/";
   TString out_path  = "./data/template/";
   TString cal_name  = "run182"; //not used. 
@@ -44,8 +44,8 @@ HistManager HM;
   TString argv4 = cal_name;
 
   int start_time = 0;
-  int stop_time = 300;
-  double  templ_offs = 0;
+  int stop_time = 100;
+  double  templ_offs = 100;
 
   int     ti_bins = 1600;
   double  ti_from = 0;
@@ -63,7 +63,7 @@ HistManager HM;
 
   const TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
 
-  Long64_t max_evts = 1e10;
+  Long64_t max_evts = 100000;
 //Pars
 
 
@@ -101,8 +101,8 @@ void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
   TSpline5 *teSpline = new TSpline5(teProf);
   TGraphErrors *teSplGr = (TGraphErrors*)(((TH2*)histObj)->ProfileX());
 
-  teProf->SetName(histName + "Profile");  
-  teSpline->SetName(histName + "spline");
+  teProf->SetName(histName + "_profile");  
+  teSpline->SetName(histName + "_spline");
   teSpline->SetLineColor(kOrange);
   teProf->Draw();
   teSpline->Draw("L same");
@@ -170,7 +170,7 @@ void Analysis::LoopOverEntries() {
     TF1 timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
     teT_temp.Fit(&timeFit, "R");
     teT_temp.Fit(&timeFit, "R");
-    teTOffset[k] = timeFit.GetParameter(1);
+    teTOffset[k] = timeFit.GetParameter(1); 
     teT_temp.Write(histTag + " teTime");
 
     tpeak = pkT_temp.GetBinCenter(pkT_temp.GetMaximumBin());
@@ -178,7 +178,7 @@ void Analysis::LoopOverEntries() {
     timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
     pkT_temp.Fit(&timeFit, "R");
     pkT_temp.Fit(&timeFit, "R");
-    pkTOffset[k] = timeFit.GetParameter(1);
+    pkTOffset[k] = timeFit.GetParameter(1); 
     pkT_temp.Write(histTag + " pkTime");
 
   }
@@ -205,7 +205,7 @@ void Analysis::LoopOverEntries() {
     
     for(int hit = 0; hit < nCry; hit++){
 
-      int hitSide = iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
+      int hitSide = iSide[hit], hitScint = iScint[hit], hitN = GetChan(hitSide, hitScint);
       //double chCal = chEqReference/chargeEqual[hitSide][hitScint];
       //chCal = (chCal>0.8 && chCal<1.2)?chCal:1;
 
@@ -237,7 +237,7 @@ void Analysis::LoopOverEntries() {
       
       for(int tt=start_time; tt<stop_time; tt++){ 
 
-        double ttt = (double)ana::time[tt] - _teT + templ_offs;
+        double ttt = (double)ana::time[tt] - teTOffset[hitN] - _teT + templ_offs;
         //double ampl = ana::wave[hit][tt]/_teA;  // ma fa cagare, bisogna mettere dei tagli
         double ampl = ana::wave[hit][tt] / _pkV; //bisogna migliorare la normalizzazione
 
