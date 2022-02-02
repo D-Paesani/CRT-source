@@ -128,16 +128,17 @@ void qSharing_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
 void createHistBoxes() {
 
-    HM.AddHistBox("th1f", 2*scintNum, "chargeRaw", "Raw charges",      "charge", "pC",    qBins, 20, qTo);
-    HM.AddHistBox("th1f", 2*scintNum, "chargeMip",  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
-    HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip", "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
-    HM.AddHistBox("th1f", 2*scintNum, "pedMip", "Pedestal",         "charge", "pC",    100, -10, 10, &pedMip_proc);
-    HM.AddHistBox("th1f", 2*scintNum, "voltPeak", "Wave peak",        "ampl", "V",       100, 0, 2000);
-    HM.AddHistBox("th1f", 2*scintNum, "timeMip",  "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
-    HM.AddHistBox("th1f", scintNum, "zetaMip", "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
-    HM.AddHistBox("th2f", 2*scintNum, "q_chi2", "MIP q vs chi2",    "charge", "pC", "chi2", "",          qBins/2, qFrom, qTo, 100, 0, 40);
-    HM.AddHistBox("th2f", 2*scintNum, "zeta_q", "MIP q vs Z",       "zeta", "cm", "charge", "pC",      160, -scintL, scintL, qBins/2, qFrom, qTo);
-    HM.AddHistBox("th2f", scintNum, "qSharing", "Sharing",          "Q_i", "pC", "Q_neighbours", "pC", 50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeRaw",      "Raw charges",      "charge", "pC",    qBins, 20, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeMip",      "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip",    "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
+    HM.AddHistBox("th1f", 2*scintNum, "pedMip",         "Pedestal",         "charge", "pC",    100, -10, 10, &pedMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "voltPeak",       "Wave peak",        "ampl", "V",       100, 0, 2000);
+    HM.AddHistBox("th1f", 2*scintNum, "timeMip",        "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
+    HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    
+    HM.AddHistBox("th2f", 2*scintNum, "q_chi2",         "MIP q vs chi2",    "charge", "pC", "chi2", "",           qBins/2, qFrom, qTo, 100, 0, 40);
+    HM.AddHistBox("th2f", 2*scintNum, "zeta_q",         "MIP q vs Z",       "zeta", "cm", "charge", "pC",         160, -scintL, scintL, qBins/2, qFrom, qTo);
+    HM.AddHistBox("th2f", scintNum,   "qSharing",       "Sharing",          "Q_i", "pC", "Q_neighbours", "pC",    50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
 
 }
 
@@ -339,7 +340,7 @@ void Analysis::LoopOverEntries() {
     zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
 
     if ( !Selection.isZetaGood(zeta) ) {continue;}
-    if ( !Selection.ismuon(intQ, zeta, iScHit) ) {continue;}
+    if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
 
     fill_mip(iScHit);    
   }
@@ -354,16 +355,17 @@ void Analysis::Loop(){
 
   if (fChain == 0) return;
 
-  cout<<"Creating histograms:"<<endl;
+  cout<<"Creating histograms :"<<endl;
   HM.SetOutFile(outFile);
   HM.SetNamerFun(&NamerMatrix);
   createHistBoxes();
-
-  Selection.load_2dcuts();
-
   cout<<"...done"<<endl<<endl;
 
-  cout<<"Retrieving calibration data from [" + lutPrefix3p + "] ..."<<endl;
+  cout<<"Loading cutGs :";
+  Selection.loadCutG();
+  cout<<"...done"<<endl<<endl;
+
+  cout<<"Retrieving calibration data from [" + lutPrefix3p + "] :"<<endl;
   timeOffset  = CSV.InitMatrix(2, scintNum); timeOffset_out = CSV.InitMatrix(2, scintNum);
   chargeEqual = CSV.InitMatrix(2, scintNum); chargeEqual_out = CSV.InitMatrix(2, scintNum);
   chargeEqualErr = CSV.InitMatrix(2, scintNum); chargeEqualErr_out = CSV.InitMatrix(2, scintNum);
@@ -387,7 +389,7 @@ void Analysis::Loop(){
   HM.ProcessBoxes();
   Analysis::ProcessPlots();
 
-  cout<<endl<<"Writing data to [" + lutPrefix3 + "] ..."<<endl;
+  cout<<endl<<"Writing data to [" + lutPrefix3 + "] :"<<endl;
   CSV.Write(lutPrefix3 + runName + lutChEqName + ".csv", ',', chargeEqual_out, 2, scintNum, 4);
   cout<<"...done"<<endl;
 

@@ -13,23 +13,28 @@ using namespace std;
 
 
 class MipSelection {
-public:
-  TCutG *cuts[2][8];
 
-  void load_2dcuts(){
+private:
+  TCutG *_cutG[2][8];
+  int _tCutsLoaded = 0;
+
+
+public:
+
+  void loadCutG(){
+    if (!enableCutG) { return;}
     for(int iSd=0; iSd<2; iSd++){
       for(int iSc=0; iSc<scintNum; iSc++){
-        TFile f(Form("data/calibration/2dcuts/cut%i%i.root", iSd, iSc));
-        cuts[iSd][iSc] = (TCutG*)f.Get("CUTG");
+        TFile f(Form( cutGPrefix + cutGFormat + ".root", iSd, iSc));
+        _cutG[iSd][iSc] = (TCutG*)f.Get("CUTG");
       }
     }
+    _tCutsLoaded = 1;
   }
 
   int isCoincidence(double Q[], int isc) { return (int)( Q[isc] > minQCut &&  Q[scintNum + isc] > minQCut ); }
 
-  int isChargeGood(double Q[], int isc) {
-    return (int)( Q[scintNum + isc] > minQCut && Q[scintNum + isc] < maxQCut && Q[isc] > minQCut && Q[isc] < maxQCut ); 
-  }
+  int isChargeGood(double Q[], int isc) { return (int)( Q[scintNum + isc] > minQCut && Q[scintNum + isc] < maxQCut && Q[isc] > minQCut && Q[isc] < maxQCut ); }
 
   int isScintSaturated(double V[], int isc) { return (int)( V[isc] > maxVpeak || V[scintNum + isc] > maxVpeak ); }
 
@@ -64,13 +69,19 @@ public:
 
   int isTimeGood(double T) { return 1;}
 
-  int ismuon(double Q[], double Z, int iSc){
-    int side0ok = cuts[0][iSc]->IsInside(Z, Q[iSc]);
-    int side1ok = cuts[1][iSc]->IsInside(Z, Q[iSc+scintNum]);
-    return side0ok && side1ok;
+  int mipCutG(double Q[], double Z, int iSc){
+    if (!_tCutsLoaded || !enableCutG) { return 1; }
+    return _cutG[0][iSc]->IsInside(Z, Q[iSc]) && _cutG[1][iSc]->IsInside(Z, Q[iSc+scintNum]);
   }
 
-  int applyMipCuts() { return 1;} //whole mip selection
+
+
+
+
+
+
+
+
 
 };
 
