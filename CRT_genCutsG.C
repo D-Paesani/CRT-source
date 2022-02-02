@@ -43,7 +43,7 @@ void createHistBoxes() {
   }
 }
 
-void find_valleys(){
+void CRT_genCutsG(){
   TFile *f = new TFile("../data/step3/run205_s3.root");
 
   TFile *outf = new TFile("../data/step3/run205_valleys.root", "recreate");
