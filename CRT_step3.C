@@ -167,8 +167,6 @@ void fill_mip(int iScHit) {
   HM.Fill2d("zeta_q", iScHit, zeta, intQ[iScHit]);
   HM.Fill2d("zeta_q", iScHit+scintNum, zeta, intQ[iScHit+scintNum]);
 
-  HM.Fill2d("q_chi2", iScHit,  teX2[iScHit], teQ[iScHit]);
-
   jTrig_out = jentry; iSc_out = iScHit;
   Z_out = zeta;
   Q_out[0] = intQ[iScHit]; Q_out[1] = intQ[iScHit+scintNum];
@@ -298,9 +296,8 @@ void Analysis::LoopOverEntries() {
     for(int hit = 0; hit < nCry; hit++){
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint; 
-      double chCal = chEqReference/chargeEqual[hitSide][hitScint]; // si può anche preparare fuori dal for
+      double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
       //chCal = (chCal>0.8 && chCal<1.2)?chCal:1; // da togliere
-      chCal = 1; //// no offline eq 
 
       intQ[hitN] = Qval[hit]*chCal;
       pkV[hitN] = Vmax[hit];
@@ -323,8 +320,8 @@ void Analysis::LoopOverEntries() {
       if ( Selection.hitPrecheck(isc, iScint, nCry) && Selection.isChargeGood(intQ, isc) ) {
 
         //Fill
-          HM.Fill2d("q_chi2", isc, teQ[isc], teX2[isc]);
-          HM.Fill2d("q_chi2", isc+scintNum, teQ[isc+scintNum],  teX2[isc+scintNum]); 
+          HM.Fill2d("q_chi2", isc, intQ[isc], teX2[isc]);
+          HM.Fill2d("q_chi2", isc+scintNum, intQ[isc+scintNum],  teX2[isc+scintNum]); 
           if( (isc+1)%scintNum > 1 ) { HM.Fill2d("qSharing", isc, intQ[isc] + intQ[isc+scintNum],  intQ[isc-1] + intQ[isc+scintNum-1] + intQ[isc+1] + intQ[isc+scintNum+1]); }
         //Fill
 

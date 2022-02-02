@@ -18,6 +18,15 @@
     const TString cutGFormat = "cut%i%i";
     const int enableCutG = 0;
 
+    const int enableOfflineEq = 0;
+
+
+
+
+
+
+
+    
     const int sideNum = 2;
     const int scintNum = 8;
 
