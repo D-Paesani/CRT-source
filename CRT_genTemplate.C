@@ -32,7 +32,7 @@ HistManager HM;
 
 
 //Pars
-  TString run_name  = "run205";
+  TString run_name  = "run182";
   TString in_path   = "./data/step2/";
   TString out_path  = "./data/template/";
   TString cal_name  = "run182"; //not used. 
@@ -43,8 +43,8 @@ HistManager HM;
   TString argv3 = run_name;
   TString argv4 = cal_name;
 
-  int start_time = 0;
-  int stop_time = 100;
+  int     start_time = 0;
+  int     stop_time = 300;
   double  templ_offs = 100;
 
   int     ti_bins = 1600;
@@ -61,7 +61,7 @@ HistManager HM;
   double  time_cut_low = -100;
   double  time_cut_high = 100;
 
-  const TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
+  const    TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
 
   Long64_t max_evts = 100000;
 //Pars
