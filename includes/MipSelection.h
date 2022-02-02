@@ -7,14 +7,23 @@
 
 #include "AnaPars.h"
 
+#include "TCutG.h"
 using namespace std;
 
 
 
 class MipSelection {
 public:
+  TCutG *cuts[2][8];
 
-
+  void load_2dcuts(){
+    for(int iSd=0; iSd<2; iSd++){
+      for(int iSc=0; iSc<scintNum; iSc++){
+        TFile f(Form("data/calibration/2dcuts/cut%i%i.root", iSd, iSc));
+        cuts[iSd][iSc] = (TCutG*)f.Get("CUTG");
+      }
+    }
+  }
 
   int isCoincidence(double Q[], int isc) { return (int)( Q[isc] > minQCut &&  Q[scintNum + isc] > minQCut ); }
 
@@ -55,20 +64,13 @@ public:
 
   int isTimeGood(double T) { return 1;}
 
-  int ismuon(double Q, double Z, int iSd){
-    TF1 cut("cut", "expo(0)+pol1(2)");
-    if (iSd==0) cut.SetParameters(6, -0.007, -124, 1.53);
-    else cut.SetParameters(7, 0.0044, -760, -3.3);
-    int good = (Q > cut.Eval(Z));
-    return good;
+  int ismuon(double Q[], double Z, int iSc){
+    int side0ok = cuts[0][iSc]->IsInside(Z, Q[iSc]);
+    int side1ok = cuts[1][iSc]->IsInside(Z, Q[iSc+scintNum]);
+    return side0ok && side1ok;
   }
 
   int applyMipCuts() { return 1;} //whole mip selection
-
-
-
-
-
 
 };
 

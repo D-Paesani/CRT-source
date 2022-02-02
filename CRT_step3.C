@@ -339,7 +339,7 @@ void Analysis::LoopOverEntries() {
     zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
 
     if ( !Selection.isZetaGood(zeta) ) {continue;}
-    //if(!Selection.ismuon(intQ[iScHit], zeta, 0) || !Selection.ismuon(intQ[iScHit+scintNum], zeta, 1)) {continue;}
+    if ( !Selection.ismuon(intQ, zeta, iScHit) ) {continue;}
 
     fill_mip(iScHit);    
   }
@@ -358,6 +358,9 @@ void Analysis::Loop(){
   HM.SetOutFile(outFile);
   HM.SetNamerFun(&NamerMatrix);
   createHistBoxes();
+
+  Selection.load_2dcuts();
+
   cout<<"...done"<<endl<<endl;
 
   cout<<"Retrieving calibration data from [" + lutPrefix3p + "] ..."<<endl;
