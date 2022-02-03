@@ -154,8 +154,8 @@ void Analysis::LoopOverEntries() {
 
   for (int k = 0; k < 2*scintNum; k++) {
 
-    int iSd = (int)((k+1)>scintNum), iSc = k - (iSd==1)*scintNum; 
-    TString histTag = Form("[%d:%d] ",  iSd, iSc);
+    int iSd = GetSide(k), iSc = GetScint(k); 
+    TString histTag = Form("_%d_%d",  iSd, iSc);
 
     TH1F teT_temp = TH1F("teT_temp", "teT_temp", 100, 10, 500);
     TH1F pkT_temp = TH1F("pkT_temp", "pkT_temp", 100, 10, 500);
@@ -171,7 +171,7 @@ void Analysis::LoopOverEntries() {
     teT_temp.Fit(&timeFit, "R");
     teT_temp.Fit(&timeFit, "R");
     teTOffset[k] = timeFit.GetParameter(1); 
-    teT_temp.Write(histTag + " teTime");
+    teT_temp.Write( "teTime" +  histTag);
 
     tpeak = pkT_temp.GetBinCenter(pkT_temp.GetMaximumBin());
     tmax = tpeak + 30, tmin = tpeak - 30;
@@ -179,7 +179,7 @@ void Analysis::LoopOverEntries() {
     pkT_temp.Fit(&timeFit, "R");
     pkT_temp.Fit(&timeFit, "R");
     pkTOffset[k] = timeFit.GetParameter(1); 
-    pkT_temp.Write(histTag + " pkTime");
+    pkT_temp.Write("pkTime" + histTag);
 
   }
 
