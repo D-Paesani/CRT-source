@@ -94,7 +94,7 @@ void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
   templDraw_can->SetLogz();
   templDraw_can->Write();
 
-  TCanvas *spline_can = new TCanvas(histName + "spline"); 
+  TCanvas *spline_can = new TCanvas(histName + "_spline"); 
   spline_can->cd();
 
   TProfile *teProf = ((TH2*)histObj)->ProfileX();
@@ -116,7 +116,7 @@ void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
   teSplGr->SetLineColor(kOrange);
 
   spline_dir->cd();
-  teSplGr->Write(histName + "graph");
+  teSplGr->Write(histName + "_graph");
 }
 
 
@@ -124,7 +124,7 @@ void teTimes_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
   TString histName = histObj->GetName();
 
-  TCanvas cc(histName + "cut_teTime", histName + "cut_teTime"); cc.cd();
+  TCanvas cc(histName + "_cut_teTime", histName + "_cut_teTime"); cc.cd();
   histObj->SetTitle(histName);
   histObj->Draw();
   
