@@ -63,7 +63,7 @@ HistManager HM;
 
   const    TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
 
-  Long64_t max_evts = 100000;
+  Long64_t max_evts = 100000000;
 //Pars
 
 
