@@ -32,10 +32,10 @@ HistManager HM;
 
 
 //Pars
-  TString run_name  = "run182";
+  TString run_name  = "run205";
   TString in_path   = "./data/step2/";
   TString out_path  = "./data/template/";
-  TString cal_name  = "run182"; //not used. 
+  TString cal_name  = "run205"; //not used. 
   TString out_pre   = "genTemp_";
 
   TString argv1 = in_path + run_name + "_s2.root";
@@ -299,6 +299,3 @@ int main(int argc, char*argv[]) {
 
   Analysis::Run(argv1, argv2, argv3, argv4, -1);
 }
-
-
-
