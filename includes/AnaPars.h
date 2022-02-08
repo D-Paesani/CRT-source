@@ -14,6 +14,19 @@
     const TString lutTimeOffsName = "_timeOff";
     const TString lutZetaOffName = "_zetaOff";
 
+    const TString cutGPrefix = "./data/calibration/cutg/";
+    const TString cutGFormat = "cut%i%i";
+    const int enableCutG = 0;
+
+    const int enableOfflineEq = 0;
+
+
+
+
+
+
+
+    
     const int sideNum = 2;
     const int scintNum = 8;
 
@@ -28,7 +41,7 @@
     const double chEqReference = 450;
 
     const float qFrom = 50;
-    const float qTo = 1050;
+    const float qTo = 1250;
     const int qBins = 200;
 
 

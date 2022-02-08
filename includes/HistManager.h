@@ -129,6 +129,9 @@ class HistBox{
     TH1** GetHistosObj(){ return _histosObj; }
     TH1* GetHistObj(int k){ return _histosObj[k]; }
 
+    TDirectory* GetDirectory(){ return _histosDir; }
+
+
     void ProcessBox(){
       
       _outfile->cd(); 
@@ -177,6 +180,7 @@ class HistManager{
     ProcessFunction GetProcDef() { return proc_def;}
 
     void SetOutFile(TFile *outfile) { _outfile = outfile; }
+    TFile *GetOutFIle() { return _outfile; }
     void CloseOutFile() { _outfile->Close(); }
 
     unordered_map<string, HistBox *> HistBoxes;

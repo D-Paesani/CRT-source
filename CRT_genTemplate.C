@@ -43,9 +43,9 @@ HistManager HM;
   TString argv3 = run_name;
   TString argv4 = cal_name;
 
-  int start_time = 0;
-  int stop_time = 300;
-  double  templ_offs = 0;
+  int     start_time = 0;
+  int     stop_time = 300;
+  double  templ_offs = 100;
 
   int     ti_bins = 1600;
   double  ti_from = 0;
@@ -61,9 +61,9 @@ HistManager HM;
   double  time_cut_low = -100;
   double  time_cut_high = 100;
 
-  const TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
+  const    TString preCut = Form("Qval > %f && Qval < %f && templChi2 > 0 && templChi2 < %f", charge_min, charge_max, chi2_max);
 
-  Long64_t max_evts = 1e10;
+  Long64_t max_evts = 100000000;
 //Pars
 
 
@@ -94,15 +94,15 @@ void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
   templDraw_can->SetLogz();
   templDraw_can->Write();
 
-  TCanvas *spline_can = new TCanvas(histName + "spline"); 
+  TCanvas *spline_can = new TCanvas(histName + "_spline"); 
   spline_can->cd();
 
   TProfile *teProf = ((TH2*)histObj)->ProfileX();
   TSpline5 *teSpline = new TSpline5(teProf);
   TGraphErrors *teSplGr = (TGraphErrors*)(((TH2*)histObj)->ProfileX());
 
-  teProf->SetName(histName + "Profile");  
-  teSpline->SetName(histName + "spline");
+  teProf->SetName(histName + "_profile");  
+  teSpline->SetName(histName + "_spline");
   teSpline->SetLineColor(kOrange);
   teProf->Draw();
   teSpline->Draw("L same");
@@ -116,7 +116,7 @@ void fuzzyTemp_proc(TH1* histObj, int histN, int& histSkipFlag) {
   teSplGr->SetLineColor(kOrange);
 
   spline_dir->cd();
-  teSplGr->Write(histName + "graph");
+  teSplGr->Write(histName + "_graph");
 }
 
 
@@ -124,7 +124,7 @@ void teTimes_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
   TString histName = histObj->GetName();
 
-  TCanvas cc(histName + "cut_teTime", histName + "cut_teTime"); cc.cd();
+  TCanvas cc(histName + "_cut_teTime", histName + "_cut_teTime"); cc.cd();
   histObj->SetTitle(histName);
   histObj->Draw();
   
@@ -154,8 +154,8 @@ void Analysis::LoopOverEntries() {
 
   for (int k = 0; k < 2*scintNum; k++) {
 
-    int iSd = (int)((k+1)>scintNum), iSc = k - (iSd==1)*scintNum; 
-    TString histTag = Form("[%d:%d] ",  iSd, iSc);
+    int iSd = GetSide(k), iSc = GetScint(k); 
+    TString histTag = Form("_%d_%d",  iSd, iSc);
 
     TH1F teT_temp = TH1F("teT_temp", "teT_temp", 100, 10, 500);
     TH1F pkT_temp = TH1F("pkT_temp", "pkT_temp", 100, 10, 500);
@@ -170,16 +170,16 @@ void Analysis::LoopOverEntries() {
     TF1 timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
     teT_temp.Fit(&timeFit, "R");
     teT_temp.Fit(&timeFit, "R");
-    teTOffset[k] = timeFit.GetParameter(1);
-    teT_temp.Write(histTag + " teTime");
+    teTOffset[k] = timeFit.GetParameter(1); 
+    teT_temp.Write( "teTime" +  histTag);
 
     tpeak = pkT_temp.GetBinCenter(pkT_temp.GetMaximumBin());
     tmax = tpeak + 30, tmin = tpeak - 30;
     timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
     pkT_temp.Fit(&timeFit, "R");
     pkT_temp.Fit(&timeFit, "R");
-    pkTOffset[k] = timeFit.GetParameter(1);
-    pkT_temp.Write(histTag + " pkTime");
+    pkTOffset[k] = timeFit.GetParameter(1); 
+    pkT_temp.Write("pkTime" + histTag);
 
   }
 
@@ -205,7 +205,7 @@ void Analysis::LoopOverEntries() {
     
     for(int hit = 0; hit < nCry; hit++){
 
-      int hitSide = iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
+      int hitSide = iSide[hit], hitScint = iScint[hit], hitN = GetChan(hitSide, hitScint);
       //double chCal = chEqReference/chargeEqual[hitSide][hitScint];
       //chCal = (chCal>0.8 && chCal<1.2)?chCal:1;
 
@@ -237,7 +237,7 @@ void Analysis::LoopOverEntries() {
       
       for(int tt=start_time; tt<stop_time; tt++){ 
 
-        double ttt = (double)ana::time[tt] - _teT + templ_offs;
+        double ttt = (double)ana::time[tt] - teTOffset[hitN] - _teT + templ_offs;
         //double ampl = ana::wave[hit][tt]/_teA;  // ma fa cagare, bisogna mettere dei tagli
         double ampl = ana::wave[hit][tt] / _pkV; //bisogna migliorare la normalizzazione
 

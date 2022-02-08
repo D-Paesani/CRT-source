@@ -3,7 +3,6 @@
 #include <TLine.h>
 #include <iostream>
 #include <list>
-
 #include "TApplication.h"
 #include "TSpectrum.h"
 #include "TGraphErrors.h"
@@ -11,7 +10,6 @@
 #include "TH3F.h"
 #include "TH1F.h"
 #include "TF1.h"
-
 #include "TFile.h"
 #include "TTree.h"
 
@@ -26,6 +24,9 @@ double zmin = -80, zmax=80;
 double slice_width = (zmax-zmin)/nslices;
 int slicestart = 2, sliceend = 13;
 int ngoodslices = sliceend - slicestart;
+
+TString in_file = "../data/step3/run205_s3.root";
+TString out_file = "../data/cutg/run205_cutg.root";
 
 HistManager HM;
 
@@ -43,10 +44,10 @@ void createHistBoxes() {
   }
 }
 
-void find_valleys(){
-  TFile *f = new TFile("../data/step3/run205_s3.root");
+void CRT_genCutsG(){
 
-  TFile *outf = new TFile("../data/step3/run205_valleys.root", "recreate");
+  TFile *f = new TFile(in_file);
+  TFile *outf = new TFile(out_file, "recreate");
 
   HM.SetOutFile(outf);
   HM.SetNamerFun(&NamerMatrix);
@@ -109,7 +110,7 @@ void find_valleys(){
     }
   }
 
-  CsvHandler.Write("../data/calibration/luts_s3p/cut.csv", ",", mat, 16, 4, 4);
+  //CsvHandler.Write("../data/calibration/luts_s3p/cut.csv", ",", mat, 16, 4, 4);
 
   HM.CloseOutFile();
 

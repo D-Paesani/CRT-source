@@ -20,7 +20,6 @@ void NamerArray(int n, TString& hTag, TString& hTitleTag) {
   hTitleTag = Form("[ch%d] ", n); 
 };
 
-
-
+void SkipProc(TH1* histObj, int histN, int& histSkipFlag) { histSkipFlag=1; };
 
 
