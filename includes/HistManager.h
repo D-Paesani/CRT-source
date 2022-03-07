@@ -107,6 +107,23 @@ class HistBox{
           _histosObj[k] = new TH1F(_histosName.Data() + hTag, hTitleTag + _histosTitle.Data(), xBins, xMin, xMax);
         }
 
+      } else if (histType == "tprofile") { 
+
+        if (label2 == "") {
+          _label2 = _entriesNoUnit_form;
+          _label1 = label1;
+        } else {
+          _label2 = Form(_entries_form, ((xMax-xMin)/(double)xBins), label2.Data());
+          _label1 = Form(_label_form, label1.Data(), label2.Data());
+        }
+
+        _label2 = label3;
+
+        for(int k=0; k<_histN; k++){
+          _namerFunction(k, hTag, hTitleTag);
+          _histosObj[k] = new TProfile(_histosName.Data() + hTag, hTitleTag + _histosTitle.Data(), xBins, xMin, xMax);
+        }
+
       } else if (histType == "th2f") { 
 
         if (label2 == "") { _label1 = label1; } 
@@ -128,12 +145,10 @@ class HistBox{
 
     TH1** GetHistosObj(){ return _histosObj; }
     TH1* GetHistObj(int k){ return _histosObj[k]; }
-
     TDirectory* GetDirectory(){ return _histosDir; }
 
-
     void ProcessBox(){
-      
+     
       _outfile->cd(); 
       _histosDir = _outfile->mkdir(_histosName.Data(), "recreate"); 
       _histosDir->cd();
@@ -180,7 +195,7 @@ class HistManager{
     ProcessFunction GetProcDef() { return proc_def;}
 
     void SetOutFile(TFile *outfile) { _outfile = outfile; }
-    TFile *GetOutFIle() { return _outfile; }
+    TFile *GetOutFile() { return _outfile; }
     void CloseOutFile() { _outfile->Close(); }
 
     unordered_map<string, HistBox *> HistBoxes;

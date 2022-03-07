@@ -60,8 +60,14 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   pk = l2.GetParameter(1); sigma = l2.GetParameter(2); 
   TF1 l3 = TF1("l", "landau", pk-1*sigma, pk+4*sigma);     l3.SetParameters(l2.GetParameter(0), l2.GetParameter(1), sigma);  histObj->Fit(&l3, "R");
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
-  TF1 l4 = TF1("l", "landau", pk-0.8*sigma, pk+4*sigma);   l4.SetParameters(l3.GetParameter(0), l3.GetParameter(1), sigma);  histObj->Fit(&l4, "R");
-  
+
+  TF1 l4;
+  if (!centerMode) l4 = TF1("l", "landau", pk-0.8*sigma, pk+4*sigma);   
+  else l4 = TF1("l", "landau", pk-2*sigma, pk+4*sigma);
+
+  l4.SetParameters(l3.GetParameter(0), l3.GetParameter(1), sigma);  histObj->Fit(&l4, "R");
+
+
   int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
 
   chargeEqual_out[iSd][iSc] = l4.GetParameter(1);
@@ -311,8 +317,8 @@ void Analysis::LoopOverEntries() {
       if (Selection.isSaturated(pkV[hitN])) {skipFlag = 1; continue;}
 
       fill_raw(hitN);
-    } 
-    
+    }
+
     if (skipFlag) {continue;}
 
     for(int isc = 0; isc < scintNum; isc++) {
@@ -326,9 +332,9 @@ void Analysis::LoopOverEntries() {
         //Fill
 
         if ( Selection.isX2Good(teX2, isc) && !Selection.isShared(intQ, isc) ) { iScHit = isc; m++; }
-      } 
-    } 
-    
+      }
+    }
+
     if ( m != 1 ) {continue;}
 
     if ( !Selection.isTimeGood(teT[iScHit])) {continue;}
@@ -337,7 +343,7 @@ void Analysis::LoopOverEntries() {
     zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
 
     if ( !Selection.isZetaGood(zeta) ) {continue;}
-    if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
+    //if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
 
     fill_mip(iScHit);    
   }

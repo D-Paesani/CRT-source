@@ -2,7 +2,7 @@
 #define AnaPars_H
 
 
-    const int centerMode = 0;
+    const int centerMode = 1;
 
     const Long64_t maxEvToProcess3p1 = 100e3;
     const Long64_t maxEvToProcess3p2 = 100e3;

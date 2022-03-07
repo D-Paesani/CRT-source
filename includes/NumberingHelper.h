@@ -9,7 +9,6 @@ int GetSide(int n) { return (int)((n+1)>scintNum); }
 int GetScint(int n) { return (int)(n - (GetSide(n)==1)*scintNum); }
 int GetChan(int iSd, int iSc) { return (int)(iSc + iSd*scintNum); }
 
-        
 void NamerMatrix(int hN, TString& hTag, TString& hTitleTag) {
     hTag = Form("_%d_%d", GetSide(hN), GetScint(hN)); 
     hTitleTag = Form("[sd%d][sc%d] ", GetSide(hN), GetScint(hN));
