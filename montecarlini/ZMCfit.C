@@ -26,13 +26,13 @@ void ZMCfit(){
    TH1F *h_Data = (TH1F*) inFile->Get("zetaMip/zetaMip_0");
    TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
    TF1 *gauss_f = new TF1("gauss_f", "gaus", -100, 100);
-   TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -100, 100, true);
+   TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -80, 80, true);
    f_conv->SetNofPointsFFT(1000);
-   TF1 *f = new TF1("f", *f_conv, -100, 100, f_conv->GetNpar());
-   f->SetParameters(1., 80, 1, 0, 3);
+   TF1 *f = new TF1("f", *f_conv, -80, 80, f_conv->GetNpar());
+   f->SetParameters(6., 74, 6, 0, 3);
 
    // Fit.
    new TCanvas("c", "c", 800, 1000);
-   h_Data->Fit("f");
+   h_Data->Fit("f", "R");
    h_Data->Draw();
 }

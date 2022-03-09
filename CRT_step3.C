@@ -11,6 +11,7 @@
 #include "TH3F.h"
 #include "TH1F.h"
 #include "TF1.h"
+#include <TF1Convolution.h>
 
 #include "includes/Analysis.h"
 #include "includes/langaus.h"
@@ -28,13 +29,20 @@ MipSelection Selection;
 HistManager HM;
 
 Long64_t nentries, nbytes, nb, ientry, jentry, jTrig_out;
-double **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual, **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out;
+double **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual, **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out;
 double tDiff = 0, zeta=0;
 double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped;
 list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped};
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
 TTree *CRTs3;
+
+double flat(const double *x, const double *par){
+  double ampl = par[0];
+  double len = par[1];
+  if (x[0] < -len || x[0] > len) return 0;
+  else return ampl;
+}
 
 
 
@@ -118,8 +126,23 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
     zFit.SetParLimits(2, 60, 100);
     zFit.SetParLimits(3, 1, 1000);
     zFit.SetParLimits(4, 0.01, 2);
-    histObj->Fit(&zFit, "R");
-    histObj->Fit(&zFit, "R");
+    histObj->Fit(&zFit, "R0");
+    histObj->Fit(&zFit, "R0");
+
+  
+   TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
+   TF1 *gauss_f = new TF1("gauss_f", "gaus", -100, 100);
+   TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -85, 85, true);
+   f_conv->SetNofPointsFFT(1000);
+   TF1 *f = new TF1("f", *f_conv, -85, 85, f_conv->GetNpar());
+   f->SetParameters(6., 74, 6, 0, 3);
+   f->SetParName(0, "Ampl_flat");
+   f->SetParName(1, "Len");
+   f->SetParName(2, "Ampl_gauss");
+   f->SetParName(3, "Mean_reso");
+   f->SetParName(4, "Reso");
+   histObj->Fit("f", "R");
+   barLen_out[0][histN] = f->GetParameter(1);
   }
 
   zetaOffset[0][histN] = centerMode ? zFit.GetParameter(1) : (zFit.GetParameter(2) + zFit.GetParameter(0))/2 ;
@@ -373,6 +396,9 @@ void Analysis::Loop(){
   chargeEqual = CSV.InitMatrix(2, scintNum); chargeEqual_out = CSV.InitMatrix(2, scintNum);
   chargeEqualErr = CSV.InitMatrix(2, scintNum); chargeEqualErr_out = CSV.InitMatrix(2, scintNum);
   zetaOffset  = CSV.InitMatrix(1, scintNum); zetaOffset_out  = CSV.InitMatrix(1, scintNum);
+
+  barLen_out = CSV.InitMatrix(1, scintNum);
+
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutChEqName + "*"),      ',', chargeEqual, 2, scintNum);
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutTimeOffsName + "*"),  ',', timeOffset,  2, scintNum);
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutZetaOffName + "*"),   ',', zetaOffset,  1, scintNum);
@@ -394,6 +420,7 @@ void Analysis::Loop(){
 
   cout<<endl<<"Writing data to [" + lutPrefix3 + "] :"<<endl;
   CSV.Write(lutPrefix3 + runName + lutChEqName + ".csv", ',', chargeEqual_out, 2, scintNum, 4);
+  CSV.Write(lutPrefix3 + runName + lutBarLenName + ".csv", ',', barLen_out, 1, scintNum, 4);
   cout<<"...done"<<endl;
 
   outFile->cd();
