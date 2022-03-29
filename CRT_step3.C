@@ -22,6 +22,8 @@
 #include "includes/HistManager.h"
 #include "includes/NumberingHelper.h"
 
+#include <TSpline.h>
+
 using namespace std;
 
 CsvHandler CSV;
@@ -29,12 +31,12 @@ MipSelection Selection;
 HistManager HM;
 
 Long64_t nentries, nbytes, nb, ientry, jentry, jTrig_out;
-double **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual, **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out;
-double tDiff = 0, zeta=0;
-double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped;
-list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped};
+double **peakTimeOffset, **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual, **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out, **ped_out, **pedErr_out;
+double tDiff = 0, zeta=0, pseudotDiff = 0, pseudoZeta = 0;
+double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped, *rcT;
+list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, &rcT};
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
-int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
+int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2], pZ_out;
 TTree *CRTs3;
 
 double flat(const double *x, const double *par){
@@ -69,17 +71,27 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   TF1 l3 = TF1("l", "landau", pk-1*sigma, pk+4*sigma);     l3.SetParameters(l2.GetParameter(0), l2.GetParameter(1), sigma);  histObj->Fit(&l3, "R");
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
 
-  TF1 l4;
-  if (!centerMode) l4 = TF1("l", "landau", pk-0.8*sigma, pk+4*sigma);   
-  else l4 = TF1("l", "landau", pk-2*sigma, pk+4*sigma);
+  if (!centerMode) {qmin = pk-0.8*sigma; qmax = pk+4*sigma;}
+  else {qmin = pk-2*sigma; qmax = pk+6*sigma;}
 
-  l4.SetParameters(l3.GetParameter(0), l3.GetParameter(1), sigma);  histObj->Fit(&l4, "R");
+  TF1 f("f", langaufun, qmin, qmax, 4);
+   //Fit parameters:
+   //par[0]=Width (scale) parameter of Landau density
+   //par[1]=Most Probable (MP, location) parameter of Landau density
+   //par[2]=Total area (integral -inf to inf, normalization constant)
+   //par[3]=Width (sigma) of convoluted Gaussian function
 
+  f.SetParameters(sigma, pk, histObj->Integral(), 30);
+  f.SetParName(0, "Landau Scale");
+  f.SetParName(1, "Landau MPV");
+  f.SetParName(2, "Integral");
+  f.SetParName(3, "Gaussian Sigma");
+  histObj->Fit("f", "R");
 
   int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
 
-  chargeEqual_out[iSd][iSc] = l4.GetParameter(1);
-  chargeEqualErr_out[iSd][iSc] = l4.GetParError(1);
+  chargeEqual_out[iSd][iSc] = f.GetParameter(1);
+  chargeEqualErr_out[iSd][iSc] = f.GetParError(1);
 
 }
 
@@ -107,6 +119,11 @@ void pedMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   double qpeakPed = histObj->GetBinCenter(histObj->GetMaximumBin());
   TF1 l = TF1("l", "gaus", qpeakPed-3, qpeakPed+3);
   histObj->Fit(&l, "R");
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+
+  ped_out[iSd][iSc] = l.GetParameter(2);
+  pedErr_out[iSd][iSc] = l.GetParError(2);
 
 }
 
@@ -159,12 +176,15 @@ void createHistBoxes() {
 
     HM.AddHistBox("th1f", 2*scintNum, "chargeRaw",      "Raw charges",      "charge", "pC",    qBins, 20, qTo);
     HM.AddHistBox("th1f", 2*scintNum, "chargeMip",      "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+
+    HM.AddHistBox("th1f", scintNum, "chargeRawPerScint",  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+
     HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip",    "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
     HM.AddHistBox("th1f", 2*scintNum, "pedMip",         "Pedestal",         "charge", "pC",    100, -10, 10, &pedMip_proc);
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",       "Wave peak",        "ampl", "V",       100, 0, 2000);
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",        "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
-    
+    HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th2f", 2*scintNum, "q_chi2",         "MIP q vs chi2",    "charge", "pC", "chi2", "",           qBins/2, qFrom, qTo, 100, 0, 40);
     HM.AddHistBox("th2f", 2*scintNum, "zeta_q",         "MIP q vs Z",       "zeta", "cm", "charge", "pC",         160, -scintL, scintL, qBins/2, qFrom, qTo);
     HM.AddHistBox("th2f", scintNum,   "qSharing",       "Sharing",          "Q_i", "pC", "Q_neighbours", "pC",    50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
@@ -196,8 +216,11 @@ void fill_mip(int iScHit) {
   HM.Fill2d("zeta_q", iScHit, zeta, intQ[iScHit]);
   HM.Fill2d("zeta_q", iScHit+scintNum, zeta, intQ[iScHit+scintNum]);
 
+  HM.Fill1d("pseudoZeta", iScHit, pseudoZeta);
+
   jTrig_out = jentry; iSc_out = iScHit;
   Z_out = zeta;
+  pZ_out = pseudoZeta;
   Q_out[0] = intQ[iScHit]; Q_out[1] = intQ[iScHit+scintNum];
   T_out[0] = teT[iScHit]; T_out[1] = teT[iScHit+scintNum];
   X2_out[0] = teX2[iScHit]; X2_out[1] = teX2[iScHit+scintNum];
@@ -288,7 +311,7 @@ void Analysis::ProcessPlots() {
 
   //zetaOffOld
     zOffGraph = new TGraphErrors(scintNum); zOffGraph->SetTitle("zetaOffset_s3p2 (loaded from calib)");
-    for (int k = 0; k < scintNum; k++) { 
+    for (int k = 0; k < scintNum; k++) {
       zOffGraph->SetPoint(k, k+1, zetaOffset[0][k]);
     }
     line = new TLine(0.5, 0, scintNum+0.5, 0); 
@@ -299,6 +322,16 @@ void Analysis::ProcessPlots() {
     zOffGraph->Draw("AP"); line->Draw("same"); zet_c->Write("zetaOffset_s3p2");
   //zetaOffOld
 
+  //pedGraph
+    TGraphErrors *pedGraph = new TGraphErrors(2*scintNum); pedGraph->SetTitle("Pedestal");
+    for (int k = 0; k < scintNum; k++) {
+      pedGraph->SetPoint(k, (float)k+1-0.07, ped_out[0][k]);
+      pedGraph->SetPointError(k, 0, pedErr_out[0][k]);
+      pedGraph->SetPoint(k+scintNum,  (float)k+1+0.07, ped_out[1][k]);
+      pedGraph->SetPointError(k+scintNum, 0, pedErr_out[1][k]);
+    }
+    pedGraph->Draw("AP");
+    pedGraph->Write();
 }
 
 
@@ -321,7 +354,7 @@ void Analysis::LoopOverEntries() {
 
     InitVectors();
     int skipFlag = 0, m = 0, iScHit = -1;
-    
+
     for(int hit = 0; hit < nCry; hit++){
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint; 
@@ -339,12 +372,25 @@ void Analysis::LoopOverEntries() {
 
       if (Selection.isSaturated(pkV[hitN])) {skipFlag = 1; continue;}
 
+      TGraph wgr =  TGraph(400, time, wave[hit]);
+
+      //addon
+      TSpline5 wsp = TSpline5("wsp", &wgr);
+
+      auto spf = [&wsp](double *x, double *){ return wsp.Eval(x[0]); };
+      double offset = peakTimeOffset[hitSide][hitScint];
+      TF1 fitf = TF1("fitf", spf, offset - 100, offset + 100, 0);
+      double th = fitf.GetMaximum(offset - 100, offset + 100)*0.15;
+      rcT[hitN] = fitf.GetX(th) - offset;
+
       fill_raw(hitN);
     }
 
     if (skipFlag) {continue;}
 
     for(int isc = 0; isc < scintNum; isc++) {
+
+      HM.Fill1d("chargeRawPerScint", isc, intQ[isc] + intQ[isc+scintNum]);
 
       if ( Selection.hitPrecheck(isc, iScint, nCry) && Selection.isChargeGood(intQ, isc) ) {
 
@@ -355,6 +401,7 @@ void Analysis::LoopOverEntries() {
         //Fill
 
         if ( Selection.isX2Good(teX2, isc) && !Selection.isShared(intQ, isc) ) { iScHit = isc; m++; }
+
       }
     }
 
@@ -363,10 +410,13 @@ void Analysis::LoopOverEntries() {
     if ( !Selection.isTimeGood(teT[iScHit])) {continue;}
 
     tDiff = teT[iScHit] - teT[scintNum+iScHit]; 
+
     zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
 
+    pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp / 2;
+
     if ( !Selection.isZetaGood(zeta) ) {continue;}
-    //if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
+    if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
 
     fill_mip(iScHit);    
   }
@@ -393,15 +443,21 @@ void Analysis::Loop(){
 
   cout<<"Retrieving calibration data from [" + lutPrefix3p + "] :"<<endl;
   timeOffset  = CSV.InitMatrix(2, scintNum); timeOffset_out = CSV.InitMatrix(2, scintNum);
+  peakTimeOffset  = CSV.InitMatrix(2, scintNum);
   chargeEqual = CSV.InitMatrix(2, scintNum); chargeEqual_out = CSV.InitMatrix(2, scintNum);
   chargeEqualErr = CSV.InitMatrix(2, scintNum); chargeEqualErr_out = CSV.InitMatrix(2, scintNum);
   zetaOffset  = CSV.InitMatrix(1, scintNum); zetaOffset_out  = CSV.InitMatrix(1, scintNum);
 
   barLen_out = CSV.InitMatrix(1, scintNum);
 
+  ped_out = CSV.InitMatrix(2, scintNum);
+  pedErr_out = CSV.InitMatrix(2, scintNum);
+
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutChEqName + "*"),      ',', chargeEqual, 2, scintNum);
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutTimeOffsName + "*"),  ',', timeOffset,  2, scintNum);
   CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutZetaOffName + "*"),   ',', zetaOffset,  1, scintNum);
+  CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutPeakTimeOffsName + "*"),   ',', peakTimeOffset,  2, scintNum);
+
   cout<<"...done"<<endl<<endl;
 
   outFile->cd();
@@ -410,6 +466,7 @@ void Analysis::Loop(){
   CRTs3->Branch("crt_iTrig",   &jTrig_out,  "crt_jTrig/I"); 
   CRTs3->Branch("crt_iSc",     &iSc_out,    "crt_iSc/I");
   CRTs3->Branch("crt_Z",       &Z_out,      "crt_Z/D");
+  CRTs3->Branch("crt_pZ",      &pZ_out,      "crt_pZ/D");
   CRTs3->Branch("crt_Q",       &Q_out,      "crt_Q[2]/D");
   CRTs3->Branch("crt_T",       &T_out,      "crt_T[2]/D");
   CRTs3->Branch("crt_X2",      &X2_out,     "crt_X2[2]/D");

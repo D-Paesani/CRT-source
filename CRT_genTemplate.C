@@ -189,7 +189,7 @@ void Analysis::LoopOverEntries() {
   Long64_t etp = min(max_evts, nentries);
   cout << "Number of events to process: " << etp << endl << endl;
   nbytes = 0, nb = 0;
-    
+
   for (jentry = 0; jentry < etp; jentry++) {
 
     ientry = LoadTree(jentry);
@@ -231,20 +231,20 @@ void Analysis::LoopOverEntries() {
           _teT < time_cut_high           &&
           _teT > time_cut_low            &&
           _pkT - _teT > -5               &&
-          _pkT - _teT < 5 
-        ) 
-      { } else { continue; }  
-      
-      for(int tt=start_time; tt<stop_time; tt++){ 
+          _pkT - _teT < 5
+        )
+      { } else { continue; }
+
+      for(int tt=start_time; tt<stop_time; tt++){
 
         double ttt = (double)ana::time[tt] - teTOffset[hitN] - _teT + templ_offs;
         //double ampl = ana::wave[hit][tt]/_teA;  // ma fa cagare, bisogna mettere dei tagli
         double ampl = ana::wave[hit][tt] / _pkV; //bisogna migliorare la normalizzazione
 
         HM.Fill2d( "fuzzyTempl", hitN, ttt, ampl);
-        
+
       }
-    } 
+    }
   }
   cout<<endl;
 }
@@ -281,7 +281,7 @@ void Analysis::Loop(){
   preProcessing_dir = outFile->mkdir("preProcessing");
 
   Analysis::LoopOverEntries();
-  HM.ProcessBoxes(); 
+  HM.ProcessBoxes();
   Analysis::ProcessPlots();
 
   outFile->Close();
@@ -290,7 +290,7 @@ void Analysis::Loop(){
 }
 
 
-int main(int argc, char*argv[]) { 
+int main(int argc, char*argv[]) {
 
   if (argc != 5) {
     printf("Usage: %s [infile_name] [outfile_name] [run_name] [calib_name]\n", argv[0]);

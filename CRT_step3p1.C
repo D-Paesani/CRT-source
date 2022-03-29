@@ -29,10 +29,10 @@ MipSelection Selection;
 HistManager HM;
 
 Long64_t nentries, nbytes, nb, ientry, jentry, jTrig_out;
-double **timeOffset, **zetaOffset, **chargeEqual, **chargeEqualErr;
+double **timeOffset, **zetaOffset, **chargeEqual, **chargeEqualErr, **peakTimeOffset;
 double tDiff = 0, zeta=0;
-double *Q, *V, *teQ, *teT, *teA, *teB, *teX2, *ped;
-list<double ** > arrayList = {&Q, &V, &teQ, &teT, &teA, &teB, &teX2, &ped};
+double *Q, *V, *teQ, *teT, *teA, *teB, *teX2, *ped, *teP;
+list<double ** > arrayList = {&Q, &V, &teQ, &teT, &teA, &teB, &teX2, &ped, &teP};
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2];
 
@@ -84,6 +84,22 @@ void timeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
 }
 
+void ptimeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
+
+  gStyle->SetOptFit(1);
+
+  double tpeak = histObj->GetBinCenter(histObj->GetMaximumBin());
+  double tmax = tpeak + 40, tmin = tpeak - 40;
+  //TF1 timeFit = TF1("logn", "[0]*ROOT::Math::lognormal_pdf(x,log([1]),log([2]))", tmin, tmax);  
+  TF1 timeFit = TF1("g", "gaus", tmin, tmax); timeFit.SetParameter(1, tpeak); timeFit.SetParameter(2, 2);
+
+  histObj->Fit(&timeFit, "R");
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+  peakTimeOffset[iSd][iSc] = timeFit.GetParameter(1);
+
+}
+
 void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   histSkipFlag = 1;
@@ -111,6 +127,7 @@ void createHistBoxes() {
     HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip","MIP template q",  "charge", "pC",    qBins, qFrom, qTo);
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",   "Wave peak",        "ampl", "V",       100, 0, 2000);
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",   "Mip times",        "time", "ns",      100, 100, 400,        &timeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "ptimeMip",   "Mip times",        "time", "ns",      200, 100, 400,        &ptimeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "zetaMip",   "Mip zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
 
 }
@@ -133,6 +150,8 @@ void fill_mip(int iScHit) {
   HM.Fill1d("chargeTeMip", iScHit+scintNum, teQ[iScHit+scintNum]);
   HM.Fill1d("timeMip", iScHit, teT[iScHit]);
   HM.Fill1d("timeMip", iScHit+scintNum, teT[iScHit+scintNum]);
+  HM.Fill1d("ptimeMip", iScHit, teP[iScHit]);
+  HM.Fill1d("ptimeMip", iScHit+scintNum, teP[iScHit+scintNum]);
   HM.Fill1d("zetaMip", iScHit, zeta);
 
 }
@@ -175,6 +194,19 @@ void Analysis::ProcessPlots() {
     tim->SetLineColor(kBlue); tim->SetMarkerColor(kBlue); tim->SetMarkerSize(1.4); tim->SetMarkerStyle(25); 
     tim->GetXaxis()->SetRangeUser(0, scintNum+1);
     tim->Draw("AP"); tim_c->Write("timeOff");
+  //TimeOff
+
+
+  //TimeOff
+    TGraphErrors *ptim = new TGraphErrors(2*scintNum); ptim->SetTitle("Peak Time offset");
+    for (int k = 0; k < scintNum; k++) { 
+      ptim->SetPoint(k, (float)k+1-0.07, peakTimeOffset[0][k]);
+      ptim->SetPoint(k+scintNum,  (float)k+1+0.07, peakTimeOffset[1][k]); 
+    }
+    TCanvas *ptim_c = new TCanvas("peakTimeOff", "peakTimeOff"); ptim_c->cd(); 
+    ptim->SetLineColor(kBlue); ptim->SetMarkerColor(kBlue); ptim->SetMarkerSize(1.4); ptim->SetMarkerStyle(25); 
+    ptim->GetXaxis()->SetRangeUser(0, scintNum+1);
+    ptim->Draw("AP"); ptim_c->Write("peakTimeOff");
   //TimeOff
 
   //zetaOff
@@ -225,6 +257,7 @@ void Analysis::LoopOverEntries() {
       teB[hitN] = templFit[hit][2];
       teT[hitN] = templTime[hit];
       teX2[hitN] = templChi2[hit];                            
+      teP[hitN] = Tval[hit];
 
       if (Selection.isSaturated(V[hitN])) {skipFlag = 1; continue;}
 
@@ -266,8 +299,10 @@ void Analysis::Loop(){
   chargeEqual = CSV.InitMatrix(2, scintNum);
   zetaOffset  = CSV.InitMatrix(1, scintNum);
   timeOffset  = CSV.InitMatrix(2, scintNum);
+  peakTimeOffset = CSV.InitMatrix(2, scintNum);
   chargeEqual = CSV.InitMatrix(2, scintNum);
   chargeEqualErr = CSV.InitMatrix(2, scintNum);
+
   // cout<<"Retrieving calibration data from [" + lutPrefix3p + "] ..."<<endl;
   // CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutChEqName + "*"),      ',', chargeEqual, 2, scintNum);
   // CSV.Read(CSV.GetFirstFile(lutPrefix3p + calName + lutTimeOffsName + "*"),  ',', timeOffset,  2, scintNum);
@@ -281,6 +316,7 @@ void Analysis::Loop(){
   cout<<"Writing calibration data to [" + lutPrefix3p + "] ..."<<endl;
   CSV.Write(lutPrefix3p + runName + lutChEqName         + ".csv", ',', chargeEqual, 2, scintNum, 4);
   CSV.Write(lutPrefix3p + runName + lutTimeOffsName     + ".csv", ',', timeOffset,  2, scintNum, 4);
+  CSV.Write(lutPrefix3p + runName + lutPeakTimeOffsName     + ".csv", ',', peakTimeOffset,  2, scintNum, 4);
   cout<<"...done"<<endl;
 
   outFile->Close();
