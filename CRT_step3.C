@@ -31,7 +31,8 @@ MipSelection Selection;
 HistManager HM;
 
 Long64_t nentries, nbytes, nb, ientry, jentry, jTrig_out;
-double **peakTimeOffset, **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual, **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out, **ped_out, **pedErr_out;
+double **peakTimeOffset, **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual;
+double **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out, **ped_out, **pedErr_out, **timeDiff_out, **timeDiffErr_out;
 double tDiff = 0, zeta=0, pseudotDiff = 0, pseudoZeta = 0;
 double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped, *rcT;
 list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, &rcT};
@@ -95,6 +96,44 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
 }
 
+double beta(double *xx, double *par){
+  double x = xx[0], N = par[0], scale = par[1];
+  if (x > scale * 2.28) return 0;
+  return N * TMath::Sqrt( x*x + scale*2*0.511*x ) * (2.28*scale - x) * (2.28*scale-x) * (x + scale*0.511);
+}
+
+void srChargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
+
+  gStyle->SetOptFit(1);
+
+  histObj->GetXaxis()->SetRangeUser(50, 500);
+  double peak = histObj->GetBinCenter(histObj->GetMaximumBin());
+  TF1 *betafit = new TF1("betafit", beta, peak, 500, 2);
+  betafit->SetParameter(1, 200);
+  histObj->Fit("betafit", "R");
+
+  double guess_endpoint = betafit->GetParameter(1) * 2.28;
+  betafit = new TF1("f", beta, guess_endpoint * 0.6 , guess_endpoint * 0.9, 2);
+  betafit->SetParameter(1, guess_endpoint);
+  histObj->Fit("f", "R");
+
+  guess_endpoint = betafit->GetParameter(1) * 2.28;
+  betafit = new TF1("f", beta, guess_endpoint * 0.5 , guess_endpoint * 0.95, 2);
+  betafit->SetParameter(1, guess_endpoint);
+  histObj->Fit("f", "R");
+
+  betafit->SetParName(0, "Normalization");
+  betafit->SetParName(1, "Charge-Energy conversion");
+  histObj->Fit("f", "R");
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+
+  chargeEqual_out[iSd][iSc] = betafit->GetParameter(1);
+  chargeEqualErr_out[iSd][iSc] = betafit->GetParError(1);
+
+}
+
+
 void timeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
 
   gStyle->SetOptFit(1);
@@ -106,9 +145,19 @@ void timeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
   histObj->Fit(&timeFit, "R");
 
-  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
+  double mean = timeFit.GetParameter(1), sigma = timeFit.GetParameter(2);
 
-  timeOffset_out[iSd][iSc] = timeFit.GetParameter(1);
+  timeFit = TF1("g", "gaus", mean - sigma, mean + sigma); timeFit.SetParameter(1, mean); timeFit.SetParameter(2, sigma);
+
+  histObj->Fit(&timeFit, "R");
+
+  int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum;
+
+  if(TString(histObj->GetName()).Contains("timeDiffMip")){
+    timeDiff_out[0][iSc] = timeFit.GetParameter(1);
+    timeDiffErr_out[0][iSc] = timeFit.GetParError(1);
+  }
+  else timeOffset_out[iSd][iSc] = timeFit.GetParameter(1);
 
 }
 
@@ -175,14 +224,15 @@ void qSharing_proc(TH1* histObj, int histN, int& histSkipFlag) {
 void createHistBoxes() {
 
     HM.AddHistBox("th1f", 2*scintNum, "chargeRaw",      "Raw charges",      "charge", "pC",    qBins, 20, qTo);
-    HM.AddHistBox("th1f", 2*scintNum, "chargeMip",      "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "chargeMip",      "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, strontiumMode ? &srChargeMip_proc : &chargeMip_proc);
 
-    HM.AddHistBox("th1f", scintNum, "chargeRawPerScint",  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
+    HM.AddHistBox("th1f", scintNum,   "chargeRawPerScint",  "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
 
     HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip",    "MIP template q",   "charge", "pC",    qBins, qFrom, qTo);
     HM.AddHistBox("th1f", 2*scintNum, "pedMip",         "Pedestal",         "charge", "pC",    100, -10, 10, &pedMip_proc);
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",       "Wave peak",        "ampl", "V",       100, 0, 2000);
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",        "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
+    HM.AddHistBox("th1f", scintNum,   "timeDiffMip",    "MIP time difference",        "time_difference", "ns",      1000, -50, 50, &timeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th2f", 2*scintNum, "q_chi2",         "MIP q vs chi2",    "charge", "pC", "chi2", "",           qBins/2, qFrom, qTo, 100, 0, 40);
@@ -209,6 +259,7 @@ void fill_mip(int iScHit) {
   HM.Fill1d("chargeTeMip", iScHit+scintNum, teQ[iScHit+scintNum]);
   HM.Fill1d("timeMip", iScHit, teT[iScHit]);
   HM.Fill1d("timeMip", iScHit+scintNum, teT[iScHit+scintNum]);
+  HM.Fill1d("timeDiffMip", iScHit, teT[iScHit] - teT[iScHit+scintNum]);
   HM.Fill1d("pedMip", iScHit, ped[iScHit]);
   HM.Fill1d("pedMip", iScHit+scintNum, ped[iScHit+scintNum]);
   HM.Fill1d("zetaMip", iScHit, zeta);
@@ -232,7 +283,7 @@ void fill_mip(int iScHit) {
 void Analysis::ProcessPlots() {
 
   TDirectory* calib_dir = outFile->mkdir("calibration");
-  calib_dir->cd();  
+  calib_dir->cd();
 
   //ChEq
     TGraphErrors *chEqGraph = new TGraphErrors(2*scintNum); chEqGraph->SetTitle("Charge equal");
@@ -357,9 +408,9 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
-      int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint; 
+      int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
-      //chCal = (chCal>0.8 && chCal<1.2)?chCal:1; // da togliere
+      //chCal = 1.28;
 
       intQ[hitN] = Qval[hit]*chCal;
       pkV[hitN] = Vmax[hit];
@@ -447,7 +498,8 @@ void Analysis::Loop(){
   chargeEqual = CSV.InitMatrix(2, scintNum); chargeEqual_out = CSV.InitMatrix(2, scintNum);
   chargeEqualErr = CSV.InitMatrix(2, scintNum); chargeEqualErr_out = CSV.InitMatrix(2, scintNum);
   zetaOffset  = CSV.InitMatrix(1, scintNum); zetaOffset_out  = CSV.InitMatrix(1, scintNum);
-
+  timeDiff_out  = CSV.InitMatrix(1, scintNum);
+  timeDiffErr_out  = CSV.InitMatrix(1, scintNum);
   barLen_out = CSV.InitMatrix(1, scintNum);
 
   ped_out = CSV.InitMatrix(2, scintNum);
@@ -477,7 +529,11 @@ void Analysis::Loop(){
 
   cout<<endl<<"Writing data to [" + lutPrefix3 + "] :"<<endl;
   CSV.Write(lutPrefix3 + runName + lutChEqName + ".csv", ',', chargeEqual_out, 2, scintNum, 4);
+  CSV.Write(lutPrefix3 + runName + lutChEqErrName + ".csv", ',', chargeEqualErr_out, 2, scintNum, 4);
   CSV.Write(lutPrefix3 + runName + lutBarLenName + ".csv", ',', barLen_out, 1, scintNum, 4);
+  CSV.Write(lutPrefix3 + runName + lutTimeDiffName + ".csv", ',', timeDiff_out, 1, scintNum, 4);
+  CSV.Write(lutPrefix3 + runName + lutTimeDiffErrName + ".csv", ',', timeDiffErr_out, 1, scintNum, 4);
+
   cout<<"...done"<<endl;
 
   outFile->cd();

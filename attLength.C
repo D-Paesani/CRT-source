@@ -1,3 +1,5 @@
+// va sistemato...
+
 #include <fstream>
 #include <chrono>
 #include <TLine.h>
@@ -203,7 +205,7 @@ void Analysis::ProcessPlots(){
       TF1 l = TF1("l", "expo(0)+expo(2)", -80, 80);
       l.SetParLimits(3, 0.01, 0.09);
       l.SetParLimits(1, 0.0001, 0.03);
-      
+
       qz_side1->Fit(&l, "R", "", -65, 75);
       TLatex *lt1 = new TLatex(-40, 1300 - 300, Form("BAL (side %i): %.1f +/- %.1f cm ", 1, 1/l.GetParameter(1), 1/(l.GetParameter(1)*l.GetParameter(1)) *l.GetParError(1) ));
       TLatex *lt2 = new TLatex(-40, 1300 - 350, Form("TAL (side %i): %.1f +/- %.1f cm ", 1, 1/l.GetParameter(3), 1/(l.GetParameter(3)*l.GetParameter(3)) *l.GetParError(3) ));
@@ -220,24 +222,13 @@ void Analysis::ProcessPlots(){
       lt3->SetTextSize(0.03);
       lt4->SetTextSize(0.03);
 
-      qz_side0->SetName("qz_side0");
-      qz_side1->SetName("qz_side1");
-
-      qz_side0->GetXaxis()->SetRange(-75, 75);
-      qz_side1->GetXaxis()->SetRange(-75, 75);
-
-
-      qz_side0->GetYaxis()->SetRange(-50, 1300);
-      qz_side1->GetYaxis()->SetRange(-75, 1300);
-
-      qz_side0->Draw("APE");
-      qz_side1->Draw("p e same");
-      
       lt1->Draw();
       lt2->Draw();
 
       lt3->Draw();
       lt4->Draw();
+
+      a->GetHist("Qzmip", isc, isd)->Add( h->ProfileY() );
 
     }
     outFile->cd("zeta_q");
