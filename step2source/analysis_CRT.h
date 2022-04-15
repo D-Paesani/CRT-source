@@ -1,3 +1,4 @@
+
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
 // Mon Nov 30 10:37:50 2020 by ROOT version 5.34/14
@@ -99,6 +100,7 @@ public :
    Double_t        pedH[maxNcry];
    Double_t        wave[maxNcry][maxNsample];
    Double_t        bline[maxNcry];
+   Double_t        pseudot[maxNcry];
 };
 
 #endif

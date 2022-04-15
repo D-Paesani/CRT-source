@@ -11,6 +11,7 @@
 #include <TButton.h>
 #include <TMath.h>
 #include "TF1.h"
+#include <TSpline.h>
 #include <algorithm>
 #include <TCanvas.h>
 #include <TROOT.h>
@@ -34,13 +35,14 @@ int sideTmp, scintTmp, modTmp;
 //=============================================================================
 
 int const Nchan = 16;
+const double CF = 0.15;
 
 int Itmp;
 // int         ItmpLaser;
 float Qtmp, Ttmp, Btmp, Brmstmp, Vtmp;
 float ped1tmp, ped2tmp, lognTimetmp = 0, lognChi2tmp = 0;
 Double_t wavetmp[maxNsample];
-int BoaTmp, ChaTmp, DaqTmp, ScintTmp, SideTmp, ModTmp;
+int BoaTmp, ChaTmp, DaqTmp, ScintTmp, SideTmp, ModTmp, PseudoTtmp;
 
 int scint[NCHAN], side[NCHAN], mod[NCHAN];
 
@@ -136,7 +138,7 @@ void analysis_CRT::Loop(TString OutputFile, int evflag)
       GetValues(Ichan);
       // Get values for a given board/channel
 
-      if (Qtmp > 5)
+      if (Qtmp > 50)
       {
 
         iDAQ[cryTot] = DaqTmp;
@@ -150,7 +152,7 @@ void analysis_CRT::Loop(TString OutputFile, int evflag)
         Vmax[cryTot] = Vtmp;
         std::copy(wavetmp, wavetmp + nsample, wave[cryTot]);
         bline[cryTot] = Btmp;
-
+        pseudot[cryTot] = PseudoTtmp;
         cryTot++;
       }
 
@@ -195,6 +197,7 @@ void analysis_CRT::BookOutput(TTree *CRT)
   CRT->Branch("pedH", &pedH, "pedH[nCry]/D");
   CRT->Branch("wave", &wave, "wave[nCry][1024]/D");
   CRT->Branch("bline", &bline, "bline[nCry]/D");
+  CRT->Branch("templTime", &pseudot, "templTime[nCry]/D"); // per compatibilità step 3
 }
 
 //=============================================================================
@@ -231,7 +234,7 @@ void analysis_CRT::GetValues(int Ichan)
     // Baseline evaluation
     //
 
-    TAmax = Itmp * camp;  // Time (in ns) of the max amplitude
+    TAmax = time[Itmp];  // Time (in ns) of the max amplitude
     TWmin = TAmax - 110.; // Time window for baseline evaluation:
     TWmax = TAmax - 60.;  // 50 ns before the start of the wave
 
@@ -241,7 +244,7 @@ void analysis_CRT::GetValues(int Ichan)
 
     for (int Ibin = 0; Ibin < Itmp; Ibin++)
     {
-      Time = Ibin * camp;
+      Time = time[Ibin];
       if (Time > TWmin && Time < TWmax)
       {
         nVal++;
@@ -281,6 +284,19 @@ void analysis_CRT::GetValues(int Ichan)
     }
     Qtmp = sum * dt / 50.;
     Vtmp = wavetmp[Itmp];
+
+    if (Qtmp>50){
+      TGraph wgr(400, time, wavetmp); //1) faccio un tgraph con l'onda //PARTIRE DA QUA
+
+      TSpline5 wsp = TSpline5("wsp", &wgr);
+
+      auto spf = [&wsp](double *x, double *){ return wsp.Eval(x[0]); };
+      TF1 fitf = TF1("fitf", spf, TAmax - 50, TAmax + 50, 0);
+      double norm = fitf.GetMaximum(TAmax - 50, TAmax + 50);
+      double th = norm*CF;
+      PseudoTtmp = fitf.GetX(th);
+    }
+    else PseudoTtmp = -999;
   }
   else
   {
