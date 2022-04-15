@@ -38,6 +38,9 @@ double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped, *rcT;
 list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, &rcT};
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2], pZ_out;
+
+int mod = -1;
+
 TTree *CRTs3;
 
 double flat(const double *x, const double *par){
@@ -408,6 +411,8 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
+      if(mod != -1) if(iMod[hit] != mod) continue;
+
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
       //chCal = 1.28;
@@ -513,7 +518,7 @@ void Analysis::Loop(){
   cout<<"...done"<<endl<<endl;
 
   outFile->cd();
-  CRTs3 = new TTree("CRT","CRT");          
+  CRTs3 = new TTree("CRT","CRT");
   CRTs3->SetAutoSave(1000);
   CRTs3->Branch("crt_iTrig",   &jTrig_out,  "crt_jTrig/I"); 
   CRTs3->Branch("crt_iSc",     &iSc_out,    "crt_iSc/I");
@@ -544,12 +549,13 @@ void Analysis::Loop(){
 }
 
 
-int main(int argc, char*argv[]) { 
+int main(int argc, char*argv[]) {
 
-  if (argc != 5) {
-    printf("Usage: %s [infile_name] [outfile_name] [run_name] [calib_name]\n", argv[0]);
-    exit(-1);
+  if (argc != 6 && argc != 5) {
+    printf("Usage: %s [infile_name] [outfile_name] [run_name] [calib_name] ([mod])\n", argv[0]);
   }
+
+  if(argc == 6) mod = atoi(argv[5]);
 
   Analysis::Run(argv[1], argv[2], argv[3], argv[4], -1);
 }

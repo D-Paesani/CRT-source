@@ -27,6 +27,7 @@ public :
    Int_t           iDAQ[16];   //[nCry]
    Int_t           iScint[16];   //[nCry]
    Int_t           iSide[16];   //[nCry]
+   Int_t           iMod[16];   //[nCry]
    Int_t           iMax[16];   //[nCry]
    Double_t        Vmax[16];   //[nCry]
    Double_t        Qval[16];   //[nCry]
@@ -52,6 +53,7 @@ public :
    TBranch        *b_iDAQ;   //!
    TBranch        *b_iScint;   //!
    TBranch        *b_iSide;   //!
+   TBranch        *b_iMod;   //!
    TBranch        *b_iMax;   //!
    TBranch        *b_Vmax;   //!
    TBranch        *b_Qval;   //!
@@ -138,6 +140,9 @@ void ana::Init(TTree *tree)
    fChain = tree;
    fCurrent = -1;
    fChain->SetMakeClass(1);
+
+   auto *br = fChain->GetListOfBranches()->FindObject("iMod");
+   if(br != nullptr) fChain->SetBranchAddress("iMod", iMod, &b_iMod);
 
    fChain->SetBranchAddress("ntrig", &ntrig, &b_ntrig);
    fChain->SetBranchAddress("evnum", &evnum, &b_evnum);
