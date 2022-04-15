@@ -521,7 +521,7 @@ void Analysis::Loop(){
   outFile->cd();
   CRTs3 = new TTree("CRT","CRT");          
   CRTs3->SetAutoSave(1000);
-  CRTs3->Branch("iTrig",   &jTrig_out,  "jTrig/I");
+  CRTs3->Branch("iTrig",   &jTrig_out,  "jTrig/L");
   CRTs3->Branch("iSc",     &iSc_out,    "iSc/I");
   CRTs3->Branch("Z",       &Z_out,      "Z/D");
   CRTs3->Branch("pZ",      &pZ_out,     "pZ/D");
