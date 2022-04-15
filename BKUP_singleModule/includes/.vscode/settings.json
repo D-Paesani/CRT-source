@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "CRT_genTemplate.C": "cpp",
+        "usage.C": "cpp",
+        "CRT_step3p1.C": "cpp",
+        "CRT_step3p2.C": "cpp",
+        "CRT_step3.C": "cpp"
+    }
+}

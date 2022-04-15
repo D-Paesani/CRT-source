@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef Analysis_h
 #define Analysis_h
 
@@ -12,9 +14,8 @@
 class Analysis: public ROOT_CLASS
 {
 public:
-  Analysis(TString infileName, TFile *f, TString, TString, int, TTree *tree = 0);
+  Analysis(TString, TFile*, TString, TString, TString);
   virtual void Loop() override; //if not needed, fill with ROOT_CLASS::Loop();
-  static void Run(TString infile, TString outfile, TString runName, TString calName, int window_close_handle);
   void LoopOverEntries();
   void ProcessHistos();
   void ProcessPlots();
@@ -22,45 +23,38 @@ public:
   TString inFileName;
   TString runName;
   TString calName;
-};
+  TString modulSel;
+  TTree *inTree;
+  Int_t iMod[16]; //////sarà poi da 32
+  TBranch *b_iMod; 
 
-#endif
-
-
-
-TTree * GetTree(TString infileName) {
+  TTree * GetTree(TString infileName) {
   TTree *tree;
   TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(infileName.Data());
       if (!f || !f->IsOpen()) {
          f = new TFile(infileName.Data());
       }
       f->GetObject(TREE_NAME, tree);
+  inTree = tree;
   return tree;
-}
+  }
 
 
+};
 
-Analysis::Analysis(TString infileName, TFile *f, TString runN, TString calN, int window_close_handle, TTree *tree) : ROOT_CLASS(GetTree(infileName)) { 
-  outFile = f;
+#endif
+
+Analysis::Analysis(TString infileName, TFile *fileout, TString runN, TString calN, TString modulSelect) : ROOT_CLASS(GetTree(infileName)) { 
+
+  outFile = fileout;
   inFileName = infileName;
   runName = runN;
   calName = calN;
+  modulSel = modulSelect;
+
+  if (modulSel != "") { inTree->SetBranchAddress("iMod", iMod, &b_iMod); } //questo può anche stare nella tree class e darà unknown branch se non lo trova
 
 };
 
 
 
-void Analysis::Run(TString infile, TString outfile, TString runName, TString calName, int window_close_handle){
-
-  TApplication *myapp;
-
-  if (window_close_handle != -1) myapp = new TApplication("myapp", 0, 0);
-
-  TFile *f = new TFile(outfile, "RECREATE");
-
-  Analysis *a = new Analysis(infile, f, runName, calName, window_close_handle);
-
-  a->Loop();
-
-  if (window_close_handle != -1)  myapp->Run(true);
-}

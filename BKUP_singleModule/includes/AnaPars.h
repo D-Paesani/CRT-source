@@ -2,15 +2,15 @@
 #define AnaPars_H
 
 
-    const int centerMode = 0;
-    const int strontiumMode = 0;
+    const int centerMode = 1;
+    const int strontiumMode = 1;
 
-    const Long64_t maxEvToProcess3p1 = 1e3;
-    const Long64_t maxEvToProcess3p2 = 1e3;
-    const Long64_t maxEvToProcess3 = 1e3;
+    const Long64_t maxEvToProcess3p1 = 100e3;
+    const Long64_t maxEvToProcess3p2 = 100e3;
+    const Long64_t maxEvToProcess3 = 1e9;
 
-    const TString lutPrefix3p = "../../data/calibration/luts_s3p/";
-    const TString lutPrefix3 = "../../data/calibration/luts_s3/";
+    const TString lutPrefix3p = "./data/calibration/luts_s3p/";
+    const TString lutPrefix3 = "./data/calibration/luts_s3/";
     const TString lutChEqName = "_chargEq";
     const TString lutChEqErrName = "_chargEqErr";
     const TString lutBarLenName = "_barLen";
@@ -20,7 +20,7 @@
     const TString lutTimeDiffName = "_timeDiff";
     const TString lutTimeDiffErrName = "_timeDiffErr";
 
-    const TString cutGPrefix = "../../data/calibration/cutg/";
+    const TString cutGPrefix = "./data/calibration/cutg/";
     const TString cutGFormat = "cut%i%i";
     const int enableCutG = 0;
 
