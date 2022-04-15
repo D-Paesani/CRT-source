@@ -411,8 +411,8 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
-      int imod = iMod[hit];
-      if ((imod==0 && modulSel=="B")||(imod==1 && modulSel=="T")) {continue;} // TOP = 0, BTM = 1
+
+      if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
     
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
@@ -521,7 +521,7 @@ void Analysis::Loop(){
   outFile->cd();
   CRTs3 = new TTree("CRT","CRT");          
   CRTs3->SetAutoSave(1000);
-  CRTs3->Branch("iTrig",   &jTrig_out,  "jTrig/L");
+  CRTs3->Branch("iTrig",   &jTrig_out,  "iTrig/L");
   CRTs3->Branch("iSc",     &iSc_out,    "iSc/I");
   CRTs3->Branch("Z",       &Z_out,      "Z/D");
   CRTs3->Branch("pZ",      &pZ_out,     "pZ/D");
