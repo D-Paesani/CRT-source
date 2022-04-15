@@ -1,4 +1,11 @@
 
+
+//questa macro può anche stare in step3.C come main() ma forse è più comodo così
+//lanciare con ./launchStep3 run123 T ---> modulo sopra, iMod = 0
+//lanciare con ./launchStep3 run123 T ---> modulo sotto, iMod = 1
+//lanciare con ./launchStep3 run123 ---> legacy
+
+
 #include "../CRT_step3.C"
 
 #define inFile_f "../../data/step2/%s_s2.root"
@@ -34,11 +41,6 @@ void launchStep3(TString run_name, TString mod_select = "") {
 
 
 }
-
-
-
-
-
 
 
 
