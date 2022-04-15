@@ -3,7 +3,7 @@
 
 
     const int centerMode = 1;
-    const int strontiumMode = 0;
+    const int strontiumMode = 1;
 
     const Long64_t maxEvToProcess3p1 = 100e3;
     const Long64_t maxEvToProcess3p2 = 100e3;
@@ -24,7 +24,7 @@
     const TString cutGFormat = "cut%i%i";
     const int enableCutG = 0;
 
-    const int enableOfflineEq = 0;
+    const int enableOfflineEq = 1;
 
     const int sideNum = 2;
     const int scintNum = 8;
