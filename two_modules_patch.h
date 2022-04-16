@@ -40,14 +40,7 @@ public :
    Double_t        pedH[16];   //[nCry]
    Double_t        wave[16][1024];   //[nCry]
    Double_t        bline[16];   //[nCry]
-   Double_t        lognTime[16];   //[nCry]
-   Double_t        lognChi2[16];   //[nCry]
-   Double_t        lognFit[16][4];   //[nCry]
-   Double_t        lognErr[16][4];   //[nCry]
    Double_t        templTime[16];   //[nCry]
-   Double_t        templChi2[16];   //[nCry]
-   Double_t        templFit[16][3];   //[nCry]
-   Double_t        templErr[16][3];   //[nCry]
 
    // List of branches
    TBranch        *b_ntrig;   //!
@@ -114,9 +107,9 @@ two_modules_patch::two_modules_patch(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("run233_s2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("../data/step2/run233_orig_s2.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("run233_s2.root");
+         f = new TFile("../data/step2/run233_orig_s2.root");
       }
       f->GetObject("CRT",tree);
 
@@ -181,14 +174,7 @@ void two_modules_patch::Init(TTree *tree)
    fChain->SetBranchAddress("pedH", pedH, &b_pedH);
    fChain->SetBranchAddress("wave", wave, &b_wave);
    fChain->SetBranchAddress("bline", bline, &b_bline);
-   fChain->SetBranchAddress("lognTime", lognTime, &b_lognTime);
-   fChain->SetBranchAddress("lognChi2", lognChi2, &b_lognChi2);
-   fChain->SetBranchAddress("lognFit", lognFit, &b_lognFit);
-   fChain->SetBranchAddress("lognErr", lognErr, &b_lognErr);
    fChain->SetBranchAddress("templTime", templTime, &b_templTime);
-   fChain->SetBranchAddress("templChi2", templChi2, &b_templChi2);
-   fChain->SetBranchAddress("templFit", templFit, &b_templFit);
-   fChain->SetBranchAddress("templErr", templErr, &b_templErr);
    Notify();
 }
 

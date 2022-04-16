@@ -30,7 +30,7 @@ void two_modules_patch::Loop()
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
 
-   TFile *f = new TFile("run233_new_s2.root", "recreate");
+   TFile *f = new TFile("../data/step2/run233_new_s2.root", "recreate");
 
    TTree *out = new TTree("CRT", "CRT");
    out->SetAutoSave(100000);
@@ -77,6 +77,10 @@ void two_modules_patch::Loop()
 
          iDAQ_out[hit] = iDAQ[hit];
          iScint_out[hit] = (ch%4)*2;
+         if(ch == 4) iScint_out[hit] = 6;
+         else if(ch==7) iScint_out[hit] = 0;
+         else if(ch==14) iScint_out[hit] = 6;
+         else if(ch==15) iScint_out[hit] = 4;
          iSide_out[hit] = (ch/4)%2;
          iMod_out[hit] = ch/8;
          iMax_out[hit] = iMax[hit];

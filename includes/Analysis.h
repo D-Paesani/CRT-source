@@ -26,7 +26,7 @@ public:
   TString modulSel;
   TTree *inTree;
   Int_t iMod[16]; //////sarà poi da 32
-  TBranch *b_iMod; 
+  TBranch *b_iMod;
 
   TTree * GetTree(TString infileName) {
   TTree *tree;

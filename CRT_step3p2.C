@@ -242,7 +242,17 @@ void Analysis::LoopOverEntries() {
     
     for(int hit = 0; hit < nCry; hit++){
 
+      if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
+
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
+
+      if(isRun182) { //da eliminare
+        if (hitSide == 0 && hitScint == 0) {}
+        else if (hitSide == 1 && hitScint == 0) { continue; } 
+        else if (hitSide == 0 && hitScint == 2) { hitSide = 1; hitScint = 0; hitN = GetChan(1,0);} 
+        else {continue;}
+      }
+
       double chCal = chEqReference/chargeEqual[hitSide][hitScint];
       //chCal = (chCal>0.8 && chCal<1.2)?chCal:1; //da togliere
       chCal = 1; //// no offline eq 
@@ -267,7 +277,7 @@ void Analysis::LoopOverEntries() {
 
       if ( Selection.hitPrecheck(isc, iScint, nCry) && Selection.isChargeGood(Q, isc) ) {
 
-        if ( Selection.isX2Good(teX2, isc) && !Selection.isShared(Q, isc) ) { iScHit = isc; m++; }
+        if ( !Selection.isShared(Q, isc) ) { iScHit = isc; m++; }
       } 
     } 
     
@@ -331,12 +341,49 @@ void Analysis::Loop(){
 
 
 
-int main(int argc, char*argv[]) { 
 
-  if (argc != 5) {
-    printf("Usage: %s [infile_name] [outfile_name] [run_name] [calib_name]\n", argv[0]);
+#define inFile_f "../../data/step2/%s_s2.root"
+#define outFile_f "../../data/step3p/%s_s3p2.root"
+
+void CRT_step3p2(TString run_name, TString mod_select = "") {
+
+  gErrorIgnoreLevel = kFatal; //kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal
+
+  if (mod_select != "T" && mod_select != "B" && mod_select != "") {cout<<"modSel must be empty, 'T' or 'B' !!"<<endl; return;}
+  //opzione "" per legacy
+
+  TString inFileName = Form(inFile_f, run_name.Data());
+  TString runName = mod_select == "" ? run_name : run_name + "_" + mod_select;
+  TString outFileName = Form(outFile_f, runName.Data());
+
+
+  TFile *fileOut = new TFile(outFileName, "RECREATE");
+
+  cout<<endl<<"------------> Launching step3:"<<endl;
+  cout<<"----> runName : "<<runName<<endl;
+  cout<<"----> Input file: "<<inFileName<<endl;
+  cout<<"----> Output file: "<<outFileName<<endl;
+  cout<<"----> Calibration files: "<<runName<<endl;
+  cout<<"----> Module selector: "<<mod_select<<endl<<endl;
+
+
+  Analysis *a = new Analysis(inFileName, fileOut, runName, runName, mod_select);
+  a->Loop();
+
+}
+
+
+int main(int argc, char*argv[]) {
+
+  if (argc != 2 && argc!=3) {
+    printf("Usage: %s [run_name] [mod_select]\n", argv[0]);
     exit(-1);
   }
 
-  Analysis::Run(argv[1], argv[2], argv[3], argv[4], -1);
+  TString modulSel;
+
+  if (argc == 3) modulSel = argv[3];
+  else modulSel = "";
+
+  CRT_step3p2(argv[1], modulSel);
 }

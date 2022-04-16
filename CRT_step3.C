@@ -53,17 +53,17 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
   gStyle->SetOptFit(1); 
 
-  //TSpectrum s(2);
-  //s.Search(histObj, 2, "nodraw");
-  //double *pks = s.GetPositionX();
-  //double qpeak = *std::max_element(pks, pks + 2);
+  TSpectrum s(2);
+  s.Search(histObj, 1, "nodraw"); // a volte ne servono 2 in autotrigger
+  double *pks = s.GetPositionX();
+  double qpeak = *std::max_element(pks, pks + 2);
 
-  double min_tmp = histObj->GetXaxis()->GetXmin();
-  double max_tmp = histObj->GetXaxis()->GetXmax();
-  histObj->GetXaxis()->SetRangeUser(390,700);
-  double qpeak = histObj->GetBinCenter(histObj->GetMaximumBin());
+  //double min_tmp = histObj->GetXaxis()->GetXmin();
+  //double max_tmp = histObj->GetXaxis()->GetXmax();
+  //histObj->GetXaxis()->SetRangeUser(390,700);
+  //double qpeak = histObj->GetBinCenter(histObj->GetMaximumBin());
   histObj->GetXaxis()->SetRangeUser(qFrom, qTo);
-  double qmax = qpeak + 500, qmin = qpeak-20; float pk,sigma;
+  double qmax = qpeak + 500, qmin = qpeak-80; float pk,sigma;
 
   TF1 l1 = TF1("l", "landau", qmin, qmax);                 l1.SetParameters(histObj->Integral()/2, 400, 100);                histObj->Fit(&l1, "RQ"); 
   pk = l1.GetMaximumX(); sigma = l1.GetParameter(2);
@@ -72,7 +72,7 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   TF1 l3 = TF1("l", "landau", pk-1*sigma, pk+4*sigma);     l3.SetParameters(l2.GetParameter(0), l2.GetParameter(1), sigma);  histObj->Fit(&l3, "RQ");
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
 
-  if (!centerMode) {qmin = pk-0.8*sigma; qmax = pk+4*sigma;}
+  if (!centerMode) {qmin = pk-1.5*sigma; qmax = pk+4*sigma;} // in autotrigger 0.8 sigma a sx
   else {qmin = pk-2*sigma; qmax = pk+6*sigma;}
 
   TF1 f("f", langaufun, qmin, qmax, 4);
@@ -233,8 +233,8 @@ void createHistBoxes() {
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",       "Wave peak",        "ampl", "V",       100, 0, 2000);
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",        "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "timeDiffMip",    "MIP time difference",        "time_difference", "ns",      1000, -50, 50, &timeMip_proc);
-    HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
-    HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      1280, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      1280, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th2f", 2*scintNum, "q_chi2",         "MIP q vs chi2",    "charge", "pC", "chi2", "",           qBins/2, qFrom, qTo, 100, 0, 40);
     HM.AddHistBox("th2f", 2*scintNum, "zeta_q",         "MIP q vs Z",       "zeta", "cm", "charge", "pC",         160, -scintL, scintL, qBins/2, qFrom, qTo);
     HM.AddHistBox("th2f", scintNum,   "qSharing",       "Sharing",          "Q_i", "pC", "Q_neighbours", "pC",    50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
@@ -411,10 +411,18 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
-
       if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
-    
+
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
+
+
+      if(isRun182) { //da eliminare
+        if (hitSide == 0 && hitScint == 0) {}
+        else if (hitSide == 1 && hitScint == 0) { continue; } 
+        else if (hitSide == 0 && hitScint == 2) { hitSide = 1; hitScint = 0; hitN = GetChan(1,0);} 
+        else {continue;}
+      }
+
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
       //chCal = 1.28;
 
@@ -427,7 +435,7 @@ void Analysis::LoopOverEntries() {
       teT[hitN] = templTime[hit] - timeOffset[hitSide][hitScint];
       teX2[hitN] = templChi2[hit]; 
 
-      if (Selection.isSaturated(pkV[hitN])) {skipFlag = 1; continue;}
+      //if (Selection.isSaturated(pkV[hitN])) {continue;}
 
       TGraph wgr =  TGraph(400, time, wave[hit]);
 
@@ -443,28 +451,22 @@ void Analysis::LoopOverEntries() {
       fill_raw(hitN);
     }
 
-    if (skipFlag) {continue;}
-
     for(int isc = 0; isc < scintNum; isc++) {
 
       HM.Fill1d("chargeRawPerScint", isc, intQ[isc] + intQ[isc+scintNum]);
 
-      if ( Selection.hitPrecheck(isc, iScint, nCry) && Selection.isChargeGood(intQ, isc) ) {
+      if (Selection.hitPrecheck(isc, iScint, nCry) && Selection.isChargeGood(intQ, isc) ) {
 
-        //Fill
-          HM.Fill2d("q_chi2", isc, intQ[isc], teX2[isc]);
-          HM.Fill2d("q_chi2", isc+scintNum, intQ[isc+scintNum],  teX2[isc+scintNum]); 
           if( (isc+1)%scintNum > 1 ) { HM.Fill2d("qSharing", isc, intQ[isc] + intQ[isc+scintNum],  intQ[isc-1] + intQ[isc+scintNum-1] + intQ[isc+1] + intQ[isc+scintNum+1]); }
         //Fill
-
-        if ( Selection.isX2Good(teX2, isc) && !Selection.isShared(intQ, isc) ) { iScHit = isc; m++; }
+        if ( !Selection.isShared(intQ, isc) ) { iScHit = isc; m++; }
 
       }
     }
 
     if ( m != 1 ) {continue;}
 
-    if ( !Selection.isTimeGood(teT[iScHit])) {continue;}
+    //if ( !Selection.isTimeGood(teT[iScHit])) {continue;}
 
     tDiff = teT[iScHit] - teT[scintNum+iScHit]; 
 
@@ -472,8 +474,8 @@ void Analysis::LoopOverEntries() {
 
     pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp / 2;
 
-    if ( !Selection.isZetaGood(zeta) ) {continue;}
-    if ( !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
+    //if ( !Selection.isZetaGood(zeta) ) {continue;}
+    //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
 
     fill_mip(iScHit);    
   }
@@ -550,3 +552,36 @@ void Analysis::Loop(){
 }
 
 
+
+#define inFile_f "../../data/step2/%s_s2.root"
+#define outFile_f "../../data/step3/%s_s3.root"
+
+void CRT_step3(TString run_name, TString calib_name, TString mod_select = "") {
+
+  gErrorIgnoreLevel = kFatal; //kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal
+
+  if (mod_select != "T" && mod_select != "B" && mod_select != "") {cout<<"modSel must be empty, 'T' or 'B' !!"<<endl; return;}
+  //opzione "" per legacy
+
+  TString inFileName = Form(inFile_f, run_name.Data());
+  TString runName = mod_select == "" ? run_name : run_name + "_" + mod_select;
+  TString calibName = mod_select == "" ? calib_name : calib_name + "_" + mod_select;
+
+  TString outFileName = Form(outFile_f, runName.Data());
+
+
+  TFile *fileOut = new TFile(outFileName, "RECREATE");
+
+  cout<<endl<<"------------> Launching step3:"<<endl;
+  cout<<"----> runName : "<<runName<<endl;
+  cout<<"----> Input file: "<<inFileName<<endl;
+  cout<<"----> Output file: "<<outFileName<<endl;
+  cout<<"----> Calibration files: "<<calibName<<endl;
+  cout<<"----> Module selector: "<<mod_select<<endl<<endl;
+
+
+  Analysis *a = new Analysis(inFileName, fileOut, runName, calibName, mod_select);
+
+  a->Loop();
+
+}

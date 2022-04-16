@@ -11,7 +11,7 @@
 #define inFile_f "../../data/step2/%s_s2.root"
 #define outFile_f "../../data/step3/%s_s3.root"
 
-void launchStep3(TString run_name, TString mod_select = "") {
+void launchStep3(TString run_name, TString calibName, TString mod_select = "") {
 
   gErrorIgnoreLevel = kFatal; //kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal
 
@@ -20,7 +20,6 @@ void launchStep3(TString run_name, TString mod_select = "") {
 
   TString inFileName = Form(inFile_f, run_name.Data());
   TString runName = mod_select == "" ? run_name : run_name + "_" + mod_select;
-  TString calibName = runName;
   TString outFileName = Form(outFile_f, runName.Data());
 
 

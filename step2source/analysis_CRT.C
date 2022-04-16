@@ -42,7 +42,8 @@ int Itmp;
 float Qtmp, Ttmp, Btmp, Brmstmp, Vtmp;
 float ped1tmp, ped2tmp, lognTimetmp = 0, lognChi2tmp = 0;
 Double_t wavetmp[maxNsample];
-int BoaTmp, ChaTmp, DaqTmp, ScintTmp, SideTmp, ModTmp, PseudoTtmp;
+int BoaTmp, ChaTmp, DaqTmp, ScintTmp, SideTmp, ModTmp;
+double PseudoTtmp;
 
 int scint[NCHAN], side[NCHAN], mod[NCHAN];
 
@@ -291,8 +292,8 @@ void analysis_CRT::GetValues(int Ichan)
       TSpline5 wsp = TSpline5("wsp", &wgr);
 
       auto spf = [&wsp](double *x, double *){ return wsp.Eval(x[0]); };
-      TF1 fitf = TF1("fitf", spf, TAmax - 50, TAmax + 50, 0);
-      double norm = fitf.GetMaximum(TAmax - 50, TAmax + 50);
+      TF1 fitf = TF1("fitf", spf, TAmax - 100, TAmax + 100, 0);
+      double norm = fitf.GetMaximum(TAmax - 100, TAmax + 100);
       double th = norm*CF;
       PseudoTtmp = fitf.GetX(th);
     }
