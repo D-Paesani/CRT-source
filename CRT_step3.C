@@ -435,7 +435,7 @@ void Analysis::LoopOverEntries() {
       teT[hitN] = templTime[hit] - timeOffset[hitSide][hitScint];
       teX2[hitN] = templChi2[hit]; 
 
-      //if (Selection.isSaturated(pkV[hitN])) {continue;}
+      //if (Selection.isSaturated(pkV[hitN])) {continue;} //perchè è commentato?
 
       TGraph wgr =  TGraph(400, time, wave[hit]);
 
@@ -475,7 +475,7 @@ void Analysis::LoopOverEntries() {
     pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp / 2;
 
     //if ( !Selection.isZetaGood(zeta) ) {continue;}
-    //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
+    //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;} // ritorna già 1 se cutG non è enabled, non serve 1 || 
 
     fill_mip(iScHit);    
   }

@@ -24,6 +24,9 @@
 
 #define NCHAN 16
 
+#define use_this_map "CRT_map.dat"
+
+
 const int maxNcry    =   51;
 const int maxNsample = 1024;
 float           Qcut = 2;
