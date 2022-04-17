@@ -32,6 +32,8 @@
 
     const float scintVp = 12.5;
     const float scintL = 160.0;
+    const float scintW = 2.5;
+
 
     const double minQCut = 40;
 
