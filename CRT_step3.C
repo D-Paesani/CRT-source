@@ -41,6 +41,7 @@ int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2], pZ_out;
 TTree *CRTs3;
 #define tree_out_name "CRT"
 #define tree_index_out "iTrig"
+#define reindex_tree 0
 
 
 double flat(const double *x, const double *par){
@@ -548,8 +549,7 @@ void Analysis::Loop(){
   cout<<"...done"<<endl;
 
   outFile->cd();
-
-  CRTs3->BuildIndex(tree_index_out); 
+  if (reindex_tree == 1) { CRTs3->BuildIndex(tree_index_out); }
   CRTs3->Write();
 
   HM.CloseOutFile();

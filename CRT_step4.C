@@ -34,7 +34,7 @@ void CRT_step4(TString runName) {
   outFile->cd();
   TTree* CRTs4 = new TTree(outTreeName, outTreeName);          
   CRTs4->SetAutoSave(1000);
-  Long64_t iTrig_out;
+  Long64_t iTrig_out{0};
   int iSc_out[2];
   double Z_out[2], Q_out[4], T_out[4], X_out[4];
   CRTs4->Branch("iTrig", &iTrig_out, "iTrig/L");
@@ -49,20 +49,36 @@ void CRT_step4(TString runName) {
   Long64_t jT{0}, jB{0};
   while(1) {
 
+    //senza dover abilitare riga 44 in step3
     if (anaT.LoadTree(jT) < 0 || anaB.LoadTree(jB) < 0) {break;}
     anaT.fChain->GetEntry(jT); anaB.fChain->GetEntry(jB); 
-    Long64_t iEve = anaT.iTrig;   
-    if (iEve > anaB.iTrig) { jB++; continue; }
-    if (iEve < anaB.iTrig) { jT++; continue; }
+    iTrig_out = anaT.iTrig;   
+    if (iTrig_out > anaB.iTrig) { jB++; continue; }
+    if (iTrig_out < anaB.iTrig) { jT++; continue; }
     jB++; jT++;
 
-
+    // //con riga 44 abilitata in step3 (for ref --> https://root.cern.ch/doc/v608/classTTreeIndex.html)
+    // if (anaT.LoadTree(jT) < 0) {break;}
+    // anaT.fChain->GetEntry(jT);
+    // iTrig_out = anaT.iTrig; 
+    // if (anaB.LoadTree(anaB.fChain->GetEntryNumberWithIndex(iTrig_out)) < 0) {continue;}
+    // anaB.fChain->GetEntryWithIndex(iTrig_out);
+    // jT++;
 
     //aggiungere tagli in tempo top/bottom e distribuzioni tempi top bottom-top
     //AGGIUNGERE HISTO DI DIAGNOSTICA (hit vs iscint e modulo, cariche, zeta)
     //METTERE CORREZIONI Z_offset da CSV
     //DOMANI LO FINISCO E MARTEDì SI PROVA
 
+    Z_out[0] = anaT.Z; Z_out[1] = anaB.Z;
+    iSc_out[0] = anaT.iSc; iSc_out[1] = anaB.iSc;
+    for (int i = 0; i < 2; i++) {
+      Q_out[i] = anaT.Q[i];
+      Q_out[i+2] = anaB.Q[i];
+      T_out[i] = anaT.T[i];
+      T_out[i+2] = anaB.T[i];
+    }
+    
     CRTs4->Fill();
 
   }
