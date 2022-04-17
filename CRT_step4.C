@@ -56,15 +56,7 @@ void CRT_step4(TString runName) {
     if (iEve < anaB.iTrig) { jT++; continue; }
     jB++; jT++;
 
-    iTrig_out = iEve;
-    Z_out[0] = anaT.Z; Z_out[1] = anaB.Z;
-    iSc_out[0] = anaT.iSc; iSc_out[1] = anaB.iSc;
-    for (int i = 0; i < 2; i++) {
-      Q_out[i] = anaT.Q[i];
-      Q_out[i+2] = anaB.Q[i];
-      T_out[i] = anaT.T[i];
-      T_out[i+2] = anaB.T[i];
-    }
+
 
     //aggiungere tagli in tempo top/bottom e distribuzioni tempi top bottom-top
     //AGGIUNGERE HISTO DI DIAGNOSTICA (hit vs iscint e modulo, cariche, zeta)

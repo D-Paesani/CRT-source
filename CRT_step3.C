@@ -39,6 +39,9 @@ list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, 
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2], pZ_out;
 TTree *CRTs3;
+#define tree_out_name "CRT"
+#define tree_index_out "iTrig"
+
 
 double flat(const double *x, const double *par){
   double ampl = par[0];
@@ -521,7 +524,7 @@ void Analysis::Loop(){
   cout<<"...done"<<endl<<endl;
 
   outFile->cd();
-  CRTs3 = new TTree("CRT","CRT");          
+  CRTs3 = new TTree(tree_out_name, tree_out_name);          
   CRTs3->SetAutoSave(1000);
   CRTs3->Branch("iTrig",   &jTrig_out,  "iTrig/L");
   CRTs3->Branch("iSc",     &iSc_out,    "iSc/I");
@@ -545,6 +548,8 @@ void Analysis::Loop(){
   cout<<"...done"<<endl;
 
   outFile->cd();
+
+  CRTs3->BuildIndex(tree_index_out); 
   CRTs3->Write();
 
   HM.CloseOutFile();
