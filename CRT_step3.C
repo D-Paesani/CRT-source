@@ -39,6 +39,10 @@ list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, 
 void InitVectors() { for(double** &arr: arrayList) { *arr = new double[2*scintNum](); } }
 int iSc_out; double_t Z_out; double_t Q_out[2], X2_out[2], T_out[2], pZ_out;
 TTree *CRTs3;
+#define tree_out_name "CRT"
+#define tree_index_out "iTrig"
+#define reindex_tree 0
+
 
 double flat(const double *x, const double *par){
   double ampl = par[0];
@@ -435,7 +439,7 @@ void Analysis::LoopOverEntries() {
       teT[hitN] = templTime[hit] - timeOffset[hitSide][hitScint];
       teX2[hitN] = templChi2[hit]; 
 
-      //if (Selection.isSaturated(pkV[hitN])) {continue;}
+      //if (Selection.isSaturated(pkV[hitN])) {continue;} //perchè è commentato?
 
       TGraph wgr =  TGraph(400, time, wave[hit]);
 
@@ -475,7 +479,7 @@ void Analysis::LoopOverEntries() {
     pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp / 2;
 
     //if ( !Selection.isZetaGood(zeta) ) {continue;}
-    //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;}
+    //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;} // ritorna già 1 se cutG non è enabled, non serve 1 || 
 
     fill_mip(iScHit);    
   }
@@ -521,7 +525,7 @@ void Analysis::Loop(){
   cout<<"...done"<<endl<<endl;
 
   outFile->cd();
-  CRTs3 = new TTree("CRT","CRT");          
+  CRTs3 = new TTree(tree_out_name, tree_out_name);          
   CRTs3->SetAutoSave(1000);
   CRTs3->Branch("iTrig",   &jTrig_out,  "iTrig/L");
   CRTs3->Branch("iSc",     &iSc_out,    "iSc/I");
@@ -545,6 +549,7 @@ void Analysis::Loop(){
   cout<<"...done"<<endl;
 
   outFile->cd();
+  if (reindex_tree == 1) { CRTs3->BuildIndex(tree_index_out); }
   CRTs3->Write();
 
   HM.CloseOutFile();

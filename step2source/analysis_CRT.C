@@ -103,13 +103,15 @@ void analysis_CRT::Loop(TString OutputFile, int evflag)
   Long64_t nbytes = 0, nb = 0;
 
   FILE *mapFile;
-  mapFile = fopen("CRT_map.dat", "r");
+  cout<<"-------------->opening "<<use_this_map<<endl;
+  mapFile = fopen(use_this_map, "r");
   for (int Iloop = 0; Iloop < Nchan; Iloop++)
   {
     fscanf(mapFile, "%d %d %d %d", &ChaTmp, &ScintTmp, &SideTmp, &ModTmp);
     scint[ChaTmp] = ScintTmp;
     side[ChaTmp] = SideTmp;
     mod[ChaTmp] = ModTmp;
+    cout<<ChaTmp<<"  "<<ScintTmp<<"  "<<SideTmp<<"  "<<ModTmp<<endl;
   }
   fclose(mapFile);
 

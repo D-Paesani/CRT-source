@@ -1,30 +1,14 @@
-#define ana_cxx
-#include "ana.h"
+#define ana3_cxx
+#include "ana3.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void ana::Loop()
+void ana3::Loop()
 {
-   if (fChain == 0) return;
-
-   Long64_t nentries = fChain->GetEntriesFast();
-
-   Long64_t nbytes = 0, nb = 0;
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-      Long64_t ientry = LoadTree(jentry);
-      if (ientry < 0) break;
-      nb = fChain->GetEntry(jentry);   nbytes += nb;
-      // if (Cut(ientry) < 0) continue;
-   }
-}
-
-
-
-
 //   In a ROOT session, you can do:
-//      root> .L ana.C
-//      root> ana t
+//      root> .L ana3.C
+//      root> ana3 t
 //      root> t.GetEntry(12); // Fill t data members with entry number 12
 //      root> t.Show();       // Show values of entry 12
 //      root> t.Show(16);     // Read and show values of entry 16
@@ -45,3 +29,15 @@ void ana::Loop()
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
+   if (fChain == 0) return;
+
+   Long64_t nentries = fChain->GetEntriesFast();
+
+   Long64_t nbytes = 0, nb = 0;
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      // if (Cut(ientry) < 0) continue;
+   }
+}
