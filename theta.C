@@ -6,8 +6,8 @@
 
 using namespace std;
 
-const Long64_t maxEvToProcess = 1e2;
-const int debug = 1;
+const Long64_t maxEvToProcess = 1e6;
+const int debug = 0;
 
 void theta(){
   TString filename[2] = {
@@ -17,7 +17,7 @@ void theta(){
 
   step3out *inst[2];
 
-  auto *h = new TH1F("theta", "theta", 20, -TMath::Pi(), -TMath::Pi());
+  auto *h = new TH1F("sdiff", "sdiff", 15, -7.5, 7.5); //sarebbe tangent theta * DY / 1.5
 
   for(int i=0; i<2; i++) inst[i] = new step3out(filename[i]);
 
@@ -51,5 +51,8 @@ void theta(){
     inst[1]->fChain->GetEntry(slave_entry);
 
     if(debug) cout << inst[1]->iTrig << endl;
+
+    h->Fill((inst[0]->iSc - inst[1]->iSc));
   }
+  h->Draw("e");
 }

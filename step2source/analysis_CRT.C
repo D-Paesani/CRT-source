@@ -145,6 +145,7 @@ void analysis_CRT::Loop(TString OutputFile, int evflag)
         iDAQ[cryTot] = DaqTmp;
         iScint[cryTot] = ScintTmp;
         iSide[cryTot] = SideTmp;
+        iMod[cryTot] = ModTmp;
         Qval[cryTot] = Qtmp;
         Tval[cryTot] = Ttmp;
         pedL[cryTot] = ped1tmp;
@@ -222,7 +223,6 @@ void analysis_CRT::GetValues(int Ichan)
   ScintTmp = scint[Ichan];
   SideTmp = side[Ichan];
   ModTmp = mod[Ichan];
-
   Ttmp = tave[Ichan];
   ped1tmp = ped[Ichan];
   ped2tmp = pedh[Ichan];
