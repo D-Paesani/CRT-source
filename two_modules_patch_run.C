@@ -77,10 +77,10 @@ void two_modules_patch::Loop()
 
          iDAQ_out[hit] = iDAQ[hit];
          iScint_out[hit] = (ch%4)*2;
-         if(ch == 4) iScint_out[hit] = 6;
+/*         if(ch == 4) iScint_out[hit] = 6;
          else if(ch==7) iScint_out[hit] = 0;
          else if(ch==14) iScint_out[hit] = 6;
-         else if(ch==15) iScint_out[hit] = 4;
+         else if(ch==15) iScint_out[hit] = 4;*/
          iSide_out[hit] = (ch/4)%2;
          iMod_out[hit] = ch/8;
          iMax_out[hit] = iMax[hit];

@@ -76,10 +76,10 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   TF1 l3 = TF1("l", "landau", pk-1*sigma, pk+4*sigma);     l3.SetParameters(l2.GetParameter(0), l2.GetParameter(1), sigma);  histObj->Fit(&l3, "RQ");
   pk = l3.GetParameter(1); sigma = l3.GetParameter(2);
 
-  if (!centerMode) {qmin = pk-1.5*sigma; qmax = pk+4*sigma;} // in autotrigger 0.8 sigma a sx
+  if (!centerMode) {qmin = pk-1*sigma; qmax = pk+2*sigma;} // in autotrigger 0.8 sigma a sx - 4 a dx
   else {qmin = pk-2*sigma; qmax = pk+6*sigma;}
 
-  TF1 f("f", langaufun, qmin, qmax, 4);
+/*  TF1 f("f", langaufun, qmin, qmax, 4);
    //Fit parameters:
    //par[0]=Width (scale) parameter of Landau density
    //par[1]=Most Probable (MP, location) parameter of Landau density
@@ -92,6 +92,9 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   f.SetParName(2, "Integral");
   f.SetParName(3, "Gaussian Sigma");
   histObj->Fit("f", "RQ")   ;
+*/
+
+  TF1 f = TF1("l", "landau", qmin, qmax);     f.SetParameters(l3.GetParameter(0), pk, sigma);  histObj->Fit(&f, "RQ");
 
   int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
 
@@ -100,35 +103,63 @@ void chargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
 }
 
+double a = 2 * 3.1415 * 43 / 143;
+double b = a/(1-exp(-a));
+double c = b-a;
+double d = 0.5 * (b -1);
+double w = 2.28;
+
+double fermi_func(double t){
+  double p = sqrt(t*t + 2*t*0.51);
+  return a*w/p + c/(1 + d/(p*p));
+}
+
 double beta(double *xx, double *par){
   double x = xx[0], N = par[0], scale = par[1];
   if (x > scale * 2.28) return 0;
-  return N * TMath::Sqrt( x*x + scale*2*0.511*x ) * (2.28*scale - x) * (2.28*scale-x) * (x + scale*0.511);
+  return N * TMath::Sqrt( x*x + scale*2*0.511*x ) * (2.28*scale - x) * (2.28*scale-x) * (x + scale*0.511);// * fermi_func(x/scale);
 }
 
-void srChargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {   
+void srChargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
   gStyle->SetOptFit(1);
 
-  histObj->GetXaxis()->SetRangeUser(50, 500);
-  double peak = histObj->GetBinCenter(histObj->GetMaximumBin());
-  TF1 *betafit = new TF1("betafit", beta, peak, 500, 2);
-  betafit->SetParameter(1, 200);
-  histObj->Fit("betafit", "QR");
+  cout << endl << endl << histN << endl;
 
+  // sti numeri vanno aggiustati run per run
+
+  double peak = histObj->GetMaximum();
+  cout << endl << endl << "peak " << peak << endl;
+
+  double hmax = peak*0.7, hmin = peak*0.15;
+
+  int i = histObj->GetMaximumBin();
+  while(histObj->GetBinContent(i) > hmax) i++;
+  double qmin = histObj->GetBinCenter(i);
+  while(histObj->GetBinContent(i) > hmin) i++;
+  double qmax = histObj->GetBinCenter(i);
+
+  cout << qmin << " " << qmax << endl;
+
+  TF1 *betafit = new TF1("betafit", beta, qmin, qmax, 2);
+  betafit->SetParameter(1, qmax*1.2/2.28);
+  histObj->Fit("betafit", "QR");
+/*
   double guess_endpoint = betafit->GetParameter(1) * 2.28;
+  cout << guess_endpoint << endl;
   betafit = new TF1("f", beta, guess_endpoint * 0.6 , guess_endpoint * 0.9, 2);
-  betafit->SetParameter(1, guess_endpoint);
-  histObj->Fit("f", "RQ")   ;
+  betafit->SetParameter(1, guess_endpoint/2.28);
+  histObj->Fit("f", "RQ");
 
   guess_endpoint = betafit->GetParameter(1) * 2.28;
-  betafit = new TF1("f", beta, guess_endpoint * 0.5 , guess_endpoint * 0.95, 2);
-  betafit->SetParameter(1, guess_endpoint);
+  cout << guess_endpoint << endl;
+  betafit = new TF1("f", beta, guess_endpoint * 0.6 , guess_endpoint * 0.9, 2);
+  betafit->SetParameter(1, guess_endpoint/2.28);
   histObj->Fit("f", "RQ");
-
+*/
   betafit->SetParName(0, "Normalization");
   betafit->SetParName(1, "Charge-Energy conversion");
-  histObj->Fit("f", "RQ");
+  //histObj->Fit("f", "RQ");
 
   int iSd = (int)((histN+1)>scintNum), iSc = histN - (iSd==1)*scintNum; 
 
@@ -419,16 +450,15 @@ void Analysis::LoopOverEntries() {
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
 
-
       if(isRun182) { //da eliminare
         if (hitSide == 0 && hitScint == 0) {}
-        else if (hitSide == 1 && hitScint == 0) { continue; } 
-        else if (hitSide == 0 && hitScint == 2) { hitSide = 1; hitScint = 0; hitN = GetChan(1,0);} 
+        else if (hitSide == 1 && hitScint == 0) { continue; }
+        else if (hitSide == 0 && hitScint == 2) { hitSide = 1; hitScint = 0; hitN = GetChan(1,0);}
         else {continue;}
       }
 
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
-      //chCal = 1.28;
+      //chCal = 1.07;
 
       intQ[hitN] = Qval[hit]*chCal;
       pkV[hitN] = Vmax[hit];

@@ -4,52 +4,70 @@
 #include "TF1.h"
 #include "TCanvas.h"
 
-void asymm_vs_q(){
-  TString filename(
-    "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
-    "asymm_q_stronzio_centro.root" //oppure _lato0.root
-  );
+void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double qmin, double qmax, double slice_w, int checkfit){
   auto *f = new TFile(filename);
-  auto *c = (TCanvas*)f->Get("c1");
+  auto *c = (TCanvas*)f->Get(canvasname);
   c->Draw();
   auto *h = (TH2F*)c->GetListOfPrimitives()->At(1)->Clone();
   h->Draw("zcol");
 
-  int n_slices = 20;
-  double qmin=150, qmax=350;
-  double slice_w = (qmax - qmin)/n_slices;
+  int n_slices = -(int)((qmin-qmax)/slice_w);
+
   auto **proj = new TH1F*[n_slices];
-  auto *out_f = new TFile("sasymm_vs_q.root", "recreate");
-  out_f->cd();
-  auto *g = new TGraphErrors();
   for(int i=0; i<n_slices; i++){
     h->SetAxisRange(qmin + slice_w*i, qmin + slice_w*(i+1));
     proj[i] = (TH1F*)h->ProjectionY()->Clone();
+    auto *tempx = (TH1F*)h->ProjectionX();
     double mean = proj[i]->GetMean(), sigma = proj[i]->GetRMS();
-    TF1 f("f", "gaus", mean-1.5*sigma, mean+1.5*sigma);
-    proj[i]->Fit(&f, "R");
-    mean = f.GetParameter(1), sigma = f.GetParameter(2);
-    f = TF1("f", "gaus", mean-1.5*sigma, mean+1.5*sigma);
-    proj[i]->Fit(&f, "R");
-    proj[i]->Write(Form("asymm_q%.0f", qmin + slice_w*(i+0.5)));
-    if(f.GetProb() > 0.02){
-      g->AddPoint(qmin + slice_w*(i+0.5), f.GetParameter(2));
-      g->SetPointError(g->GetN()-1, slice_w/3, f.GetParError(2));
+    TF1 f("f", "gaus", mean-2*sigma, mean+2*sigma);
+    proj[i]->Fit(&f, "RQ");
+    if((f.GetProb() > 0.05) || (!checkfit) ){
+      g->AddPoint(tempx->GetMean(), f.GetParameter(2) * TMath::Sqrt(2) );
+      g->SetPointError(g->GetN()-1, tempx->GetRMS(), f.GetParError(2) * TMath::Sqrt(2));
+    }
+    else{
+      cout << "Fit failed from :" << qmin + slice_w*i << "to " << qmin + slice_w*(i+1) << " pC" << endl;
     }
   }
-  TF1 func("f", "TMath::Sqrt([0]*[0] + 1/([1]*x))/TMath::Sqrt(2)", 50, 600);
-  func.SetParName(0, "Constant Term");
-  func.SetParName(1, "NPE_per_pC");
-  func.SetParameters(1, 1);
+  f->Close();
+}
+
+
+void asymm_vs_q(){
+  auto *g = new TGraphErrors();
+
+  add_from_file(g,
+    "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    "asymm_q_stronzio_centro_eq.root",
+    "c1", 150, 300, 5, 0
+  );
+
+ add_from_file(g,
+    "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    "asymm_q_mip.root",
+    "c1", 400, 700, 150, 0
+  );
+
+  add_from_file(g,
+    "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    "asymm_q_high.root",
+    "c1", 600, 1600, 1000, 0
+  );
+
+  TF1 func("f", "TMath::Sqrt( [0]*[0] + [1]*[1]/x + [2]*[2]/(x*x))", 50, 1000);
+  func.SetParameters(0.1, 5, 50);
+  func.SetParLimits(0, 0, 1);
+  func.SetParLimits(1, 0, 10);
+  func.SetParLimits(2, 0, 100);
+  func.SetParName(0, "a");
+  func.SetParName(1, "b");
+  func.SetParName(2, "c");
+
   gStyle->SetOptFit();
-  auto *c1 = new TCanvas("asymm_q_canvas", "c");
+  auto *c1 = new TCanvas("sz_q_canvas", "c");
   c1->cd();
   for(int i=0; i<3; i++) g->Fit(&func, "R");
   g->Draw("AP");
-  g->Write("asymm_q");
-  c1->Write();
-}
+  cout << func.Eval(480) << endl;
 
-int main(){
-  asymm_vs_q();
 }

@@ -3,12 +3,12 @@
 
     const int isRun182 = 0;
 
-    const int centerMode = 0;
-    const int strontiumMode = 0;
+    const int centerMode = 1;
+    const int strontiumMode = 1;
 
     const Long64_t maxEvToProcess3p1 = 1e4;
     const Long64_t maxEvToProcess3p2 = 1e4;
-    const Long64_t maxEvToProcess3 = 1e6;
+    const Long64_t maxEvToProcess3 = 1e8;
 
     const TString lutPrefix3p = "../../data/calibration/luts_s3p/";
     const TString lutPrefix3 = "../../data/calibration/luts_s3/";
@@ -45,7 +45,7 @@
 
     const float qFrom = 0;
     const float qTo = 1000; //deve essere 1000
-    const int qBins = 250; // deve essere 2000
+    const int qBins = 1000; // deve essere 2000
 
 
     
