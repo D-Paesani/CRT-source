@@ -19,7 +19,8 @@ void att(){
 
     TF1 l = TF1("l", "[0] * (TMath::Exp(-x/[1]) + [2]*TMath::Exp(-x/[3]) )", 0, 160);
     l.SetParameters(1, 300, 0.5, 20);
-    //l.FixParameter(1, 0.0026);
+
+    l.FixParameter(1, 380);
 
     g0->Fit(&l, "R", "", 0, 160);
     TLatex *lt[4];
@@ -28,8 +29,8 @@ void att(){
 
     l = TF1("l", "[0] * (TMath::Exp(-(160-x)/[1]) + [2]*TMath::Exp(-(160-x)/[3]) )", 0, 160);
     l.SetParameters(10, 300, 0.5, 20);
+    l.FixParameter(1, 380);
 
-    //l.FixParameter(1, -0.0026);
     g1->Fit(&l, "R", "", 0, 160);
 
     lt[2] = new TLatex(80, 100, Form("BAL (side %i): %.1f +/- %.1f cm ", 0, -1/l.GetParameter(1), 1/(l.GetParameter(1)*l.GetParameter(1)) *l.GetParError(1) ));
