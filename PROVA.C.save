@@ -50,7 +50,7 @@ int qslice(double Q){
 
 //Pars
 
-  Long64_t max_evts = 30000;
+  Long64_t max_evts = 600;
 
   #define doFitTemplate 1 // <------
   #define isRun182 0
@@ -516,20 +516,12 @@ void Analysis::Loop(){
   cout<<endl<<endl<<"::::::::::::::::::::: done :::::::::::::::::::::"<<endl<<endl;
 }
 
-int main() {
+int main(int argc, char*argv[]) {
 
+  if (argc != 5) {
+    printf("Usage: %s [infile_name] [outfile_name] [run_name] [calib_name]\n", argv[0]);
+    exit(-1);
+  }
 
-  TFile *fileOut = new TFile(argv2, "RECREATE");
-
-  Analysis *a = new Analysis(argv1, fileOut, argv3, argv3, argv4);
-
-  //Analysis::Run(argv1, argv2, argv3, argv4, -1);
-
-
-  a->Loop();
-
-}
-
-void PROVA(){
-  main();
+  Analysis::Run(argv1, argv2, argv3, argv4, -1);
 }
