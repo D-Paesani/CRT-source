@@ -294,7 +294,7 @@ void analysis_mod0::BookOutput(TTree *mod0)
   mod0->Branch("templFit"  ,&templFit,  "templFit[nHits][3]/D");
   mod0->Branch("templErr"  ,&templErr,  "templErr[nHits][3]/D");
   mod0->Branch("crtBarTop" ,&crtBarTop, "crtBarTop/I");
-  mod0->Branch("crtBarBot" ,&crtBarTop, "crtBarBot/I");
+  mod0->Branch("crtBarBot" ,&crtBarBot, "crtBarBot/I");
   mod0->Branch("t1"        ,&t1,    "t1/I");
   mod0->Branch("t2"        ,&t2,    "t2/I");
   mod0->Branch("t3"        ,&t3,    "t3/I");
