@@ -3,8 +3,8 @@
 
     const int isRun182 = 0;
 
-    const int centerMode = 1;
-    const int strontiumMode = 1;
+    const int centerMode = 0;
+    const int strontiumMode = 0;
 
     const Long64_t maxEvToProcess3p1 = 1e4;
     const Long64_t maxEvToProcess3p2 = 1e4;
@@ -30,14 +30,14 @@
     const int sideNum = 2;
     const int scintNum = 8;
 
-    const float scintVp = 12.5;
+    const float scintVp = 14.3;
     const float scintL = 160.0;
     const float scintW = 2.5;
 
 
-    const double minQCut = 40;
+    const double minQCut = 50;
 
-    const double maxQCut = 2000;
+    const double maxQCut = 3000;
     const double maxVpeak = 1800;
     const double maxChi2 = 200000;
     const double maxQSharing = 40;

@@ -3,10 +3,10 @@
 void att(){
     double q0[7], q0_err[7], q1[7], q1_err[7], pos[7], ex[7];
     int i=0;
-    ifstream a0("att0.csv");
+    ifstream a0("../data/att0_new.csv");
     while(a0 >> q0[i] >> q0_err[i] >> pos[i]) {ex[i] = 0.5; i++;}
     i=0;
-    ifstream a1("att1.csv");
+    ifstream a1("../data/att1_new.csv");
     while(a1 >> q1[i] >> q1_err[i] >> pos[i]) i++;
     cout << "Sbilanciamento: " << q0[0]/q1[0] << endl;
     for(int i=0; i<7; i++){

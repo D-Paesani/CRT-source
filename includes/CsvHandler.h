@@ -40,16 +40,17 @@ public:
     ifstream inf(filename);
     if ( !inf.is_open() ) { cout << "Error: could not open " << filename << endl; return 1;} //if (!inf) //exit(EXIT_FAILURE);
     cout<< "Opened " << filename << endl;
- 
+
+    cout << "nrow: " << nrow << endl;
+
     for(int row=0; row < nrow; row++) {      //inf >> line //while (getline(inf, line)) { 
-      
+
       getline(inf, line); if (1) { cout<<"        parsed line["<<row<<"]:  "<<line<<endl; } 
       istringstream iss(line);
       //data[row] = new double[ncol];
-      
+
       for (int col = 0; col < ncol; ++col) {
-      
-        getline(iss, val, sep); 
+        getline(iss, val, sep);
         data[row][col] = strtod(val.c_str(), NULL); if (0) { cout<<"        parsed token ["<<col<<"]: "<<data[row][col]<<endl; }
       }
     }

@@ -5,7 +5,7 @@
 #include "TF1.h"
 #include "TCanvas.h"
 
-void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double qmin, double qmax, double slice_w, int checkfit){
+void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double qmin, double qmax, double slice_w, int checkfit, double speed, double qcorr){
   auto *f = new TFile(filename);
   auto *c = (TCanvas*)f->Get(canvasname);
   c->Draw();
@@ -23,8 +23,8 @@ void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double
     TF1 f("f", "gaus", mean-2*sigma, mean+2*sigma);
     proj[i]->Fit(&f, "RQ");
     if((f.GetProb() > 0.05) || (!checkfit) ){
-      g->AddPoint(tempx->GetMean(), 2*f.GetParameter(2)/12.5 / TMath::Sqrt(2) );
-      g->SetPointError(g->GetN()-1, tempx->GetRMS(), 2*f.GetParError(2)/12.5 / TMath::Sqrt(2));
+      g->AddPoint(tempx->GetMean()*qcorr, 2*TMath::Sqrt(f.GetParameter(2)*f.GetParameter(2) - 0.4*0.4) /speed/ TMath::Sqrt(2) );
+      g->SetPointError(g->GetN()-1, tempx->GetRMS()*qcorr, 2*f.GetParError(2)/speed/ TMath::Sqrt(2));
     }
     else{
       cout << "Fit failed from :" << qmin + slice_w*i << "to " << qmin + slice_w*(i+1) << " pC" << endl;
@@ -41,15 +41,15 @@ void sz_vs_q(){
     g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
     "zq_stronzio_centro.root",
     "c1",
-    150, 300, 3, 0
+    150, 300, 10, 0, 12.5, 1
   );
 
-/*  add_from_file(
+  add_from_file(
     g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
-    "zq_183.root",
+    "zq_183_esteso.root",
     "c1",
-    400, 700, 150, 0
-  );*/
+    200, 900, 50, 0, 14.3, 1.1
+  );
 
   TF1 func("f", "TMath::Sqrt( [0]*[0] + [1]*[1]/x + [2]*[2]/(x*x))", 50, 1000);
   func.SetParameters(0.1, 5, 50);

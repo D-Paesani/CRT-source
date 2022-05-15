@@ -122,7 +122,7 @@ void srChargeMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
   histObj->Fit("f", "RQ")   ;
 
   guess_endpoint = betafit->GetParameter(1) * 2.28;
-  betafit = new TF1("f", beta, guess_endpoint * 0.5 , guess_endpoint * 0.95, 2);
+  betafit = new TF1("f", beta, guess_endpoint * 0.6 , guess_endpoint * 0.9, 2);
   betafit->SetParameter(1, guess_endpoint);
   histObj->Fit("f", "RQ");
 
@@ -190,29 +190,33 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
     histObj->Fit(&zFit, "RQ")   ;
     histObj->Fit(&zFit, "RQ")   ;
   } else {
-    zFit = TF1("l", "( TMath::TanH( (x-[0])/[1] ) - TMath::TanH( (x-[2]) /[1] ) ) * ([3]+[4]*x)", -1.2*scintL, 1.2*scintL); // non fitta mai
-    zFit.SetParLimits(0, -100, -60);
+    zFit = TF1("l", "( TMath::TanH( (x-[0])/[1] ) - TMath::TanH( (x-[2]) /[1] ) ) * ([3]+[4]*x)", -200, 200); // non fitta mai
+    zFit.SetParLimits(0, -200, -20);
     zFit.SetParLimits(1, 0, 20);
-    zFit.SetParLimits(2, 60, 100);
+    zFit.SetParLimits(2, -10, 200);
     zFit.SetParLimits(3, 1, 1000);
-    zFit.SetParLimits(4, 0.01, 2);
+    zFit.SetParLimits(4, -2, 2);
     histObj->Fit(&zFit, "QR0");
     histObj->Fit(&zFit, "QR0");
 
-    TF1 *flat_f = new TF1("step_f", "[0]*(x<[1])*(x>-[1])", -100, 100); ///////////anche così
+    TF1 *flat_f = new TF1("step_f", "[0]*(x<[1])*(x>-[1])", -150, 150); ///////////anche così
    //TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
    TF1 *gauss_f = new TF1("gauss_f", "gaus", -100, 100);
-   TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -85, 85, true);
+   TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -150, 150, true);
    f_conv->SetNofPointsFFT(1000);
-   TF1 *f = new TF1("f", *f_conv, -85, 85, f_conv->GetNpar());
-   f->SetParameters(6., 74, 6, 0, 3);
+   cout << "ZOFF: " << (zFit.GetParameter(2) + zFit.GetParameter(0))/2 << endl;
+   TF1 *f = new TF1("f", *f_conv, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 - 90, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 + 90, f_conv->GetNpar());
+   f->SetParameters(200., 76, 6, -66, 6);
    f->SetParName(0, "Ampl_flat");
    f->SetParName(1, "Len");
    f->SetParName(2, "Ampl_gauss");
    f->SetParName(3, "Mean_reso");
    f->SetParName(4, "Reso");
-   histObj->Fit("f", "RQ")   ;
-   barLen_out[0][histN] = f->GetParameter(1);
+
+//   TF1 *flat = new TF1("f", "pol0", -80, 80);
+
+   histObj->Fit("f", "RQ");
+   barLen_out[0][histN] = 0;//f->GetParameter(1);
   }
 
   zetaOffset[0][histN] = centerMode ? zFit.GetParameter(1) : (zFit.GetParameter(2) + zFit.GetParameter(0))/2 ;
@@ -237,8 +241,8 @@ void createHistBoxes() {
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",       "Wave peak",        "ampl", "V",       100, 0, 2000);
     HM.AddHistBox("th1f", 2*scintNum, "timeMip",        "MIP times",        "time", "ns",      100, -30, 30, &timeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "timeDiffMip",    "MIP time difference",        "time_difference", "ns",      1000, -50, 50, &timeMip_proc);
-    HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      1280, -scintL, scintL, &zetaMip_proc, &NamerArray);
-    HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      1280, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    HM.AddHistBox("th1f", scintNum,   "zetaMip",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
+    HM.AddHistBox("th1f", scintNum,   "pseudoZeta",        "MIP zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
     HM.AddHistBox("th2f", 2*scintNum, "q_chi2",         "MIP q vs chi2",    "charge", "pC", "chi2", "",           qBins/2, qFrom, qTo, 100, 0, 40);
     HM.AddHistBox("th2f", 2*scintNum, "zeta_q",         "MIP q vs Z",       "zeta", "cm", "charge", "pC",         160, -scintL, scintL, qBins/2, qFrom, qTo);
     HM.AddHistBox("th2f", scintNum,   "qSharing",       "Sharing",          "Q_i", "pC", "Q_neighbours", "pC",    50, qFrom, qTo, 50, qFrom, qTo, &qSharing_proc);
@@ -395,7 +399,7 @@ void Analysis::ProcessPlots() {
 
 void Analysis::LoopOverEntries() {
 
-  nentries = fChain->GetEntriesFast(); 
+  nentries = fChain->GetEntriesFast();
   Long64_t etp = min(maxEvToProcess3, nentries);
   cout << "Number of events to process: " << etp << endl << endl;
   nbytes = 0, nb = 0;
@@ -428,7 +432,7 @@ void Analysis::LoopOverEntries() {
       }
 
       double chCal = enableOfflineEq ? chEqReference/chargeEqual[hitSide][hitScint] : 1;
-      //chCal = 1.28;
+      //chCal = 1.15;
 
       intQ[hitN] = Qval[hit]*chCal;
       pkV[hitN] = Vmax[hit];

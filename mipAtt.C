@@ -29,7 +29,7 @@ void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double
     proj[i]->Fit(&f, "RQ");
 
     peak = f.GetParameter(1); sigma = f.GetParameter(2);
-    f = TF1("f", "landau", peak-1.5*sigma, peak+2*sigma);
+    f = TF1("f", "landau", peak-2*sigma, peak+3*sigma);
 
     proj[i]->Fit(&f, "RQ");
     proj[i]->Write();
@@ -48,34 +48,44 @@ void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double
 
 void mipAtt(){
 
-  auto *g = new TGraphErrors();
+  auto *g0 = new TGraphErrors();
+  auto *g1 = new TGraphErrors();
 
   add_from_file(
-    g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
-    "zqmip1.root",
+    g0, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    "zqmip_scint15.root",
     "c1",
-    -100, 100, 10, 1
+    -100, 100, 5, 1
   );
 
-/*  add_from_file(
-    g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
-    "zq_183.root",
+ add_from_file(
+    g1, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    "zqmip1_scint15.root",
     "c1",
-    400, 700, 150, 0
-  );*/
+    -100, 100, 5, 1
+  );
 
   auto *c1 = new TCanvas("sz_q_canvas", "c");
   c1->cd();
-  g->Draw("AP");
+  g0->Draw("AP");
+  g1->Draw("P");
 
-  TF1 func("f", "[0] * ( TMath::Exp((x-80)/380) + [1]*TMath::Exp((x-80)/[2]) )", -80, 70);
+  TF1 func("f0", "[0] * ( TMath::Exp(-(x+80)/380) + [1]*TMath::Exp(-(x+80)/[2]) )", -66, 66);
   func.SetParameters(100, 3, 20);
   func.SetParLimits(1, 0.1, 10);
-  func.SetParLimits(2, 1, 50);
   func.SetParName(0, "Normalization");
   func.SetParName(1, "L_{I}/L_{D}");
   func.SetParName(2, "TAL");
-  for(int i=0; i<3; i++) g->Fit(&func, "R");
+  for(int i=0; i<3; i++) g0->Fit(&func, "R");
+
+  TF1 func1("f1", "[0] * ( TMath::Exp((x-80)/380) + [1]*TMath::Exp((x-80)/[2]) )", -66, 66);
+  func1.SetParameters(100, 3, 20);
+  func1.SetParLimits(1, 0.1, 10);
+  func1.SetParLimits(3, 200, 500);
+  func1.SetParName(0, "Normalization");
+  func1.SetParName(1, "L_{I}/L_{D}");
+  func1.SetParName(2, "TAL");
+  for(int i=0; i<3; i++) g1->Fit(&func1, "R");
   gStyle->SetOptFit(1);
 
 }

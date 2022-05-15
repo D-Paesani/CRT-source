@@ -1,11 +1,14 @@
+
+
+
 #include "includes/ana3.h"
 #include "includes/ana3.C"
 
 #include "includes/HistManager.h"
 #include "includes/AnaPars.h"
 
-#define inFile_f "../../data/step3/%s_%s_s3.root"
-#define outFile_f "../../data/step4/%s_s4.root"
+#define inFile_f "../data/step3/%s_%s_s3.root"
+#define outFile_f "../data/step4/%s_s4.root"
 #define inTreeName "CRT"
 #define outTreeName "CRT"
 
@@ -38,8 +41,8 @@ void CRT_step4(TString runName) {
   int iSc_out[2];
   double Z_out[2], Q_out[4], T_out[4], X_out[4];
   CRTs4->Branch("iTrig", &iTrig_out, "iTrig/L");
-  CRTs4->Branch("iScint", &iSc_out, "iScint/I");
-  CRTs4->Branch("Z", &Z_out, "Z/D");
+  CRTs4->Branch("iScint", &iSc_out, "iScint[2]/I");
+  CRTs4->Branch("Z", &Z_out, "Z[2]/D");
   CRTs4->Branch("Q", &Q_out, "Q[4]/D");
   CRTs4->Branch("T", &T_out, "T[4]/D");
   CRTs4->Branch("X", &X_out, "X[4]/D");
