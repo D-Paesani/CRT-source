@@ -1,5 +1,6 @@
 // ad esempio
 // CRT->Draw("Z:iSc", "Z!=0 && iTrig < 33e3 && nHitBar == 5", "L")
+// per vedere il tempo servirebbe di convertire i th3f a graph2d, o farlo da questo codice qui
 
 #include <fstream>
 #include <chrono>
@@ -37,7 +38,7 @@ Long64_t nentries, nbytes, nb, ientry, jentry;
 
 double **timeOffset, **zetaOffset;
 
-double_t Z_out[8] = {0};
+double_t Z_out[8] = {0}, T_out[8] = {0};
 int iSc_out[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 Long64_t jTrig_out, nhb_out;
 
@@ -80,18 +81,25 @@ void Analysis::LoopOverEntries() {
     }
 
     nhb_out = 0;
+    TGraphErrors g;
+    TCanvas c("c", "c");
     for(int iSc=0; iSc<8; iSc++){
       if ( (teT[iSc] != 0)  && (teT[iSc+8] != 0) ){
         Z_out[iSc] = teT[iSc] - teT[iSc+8] - zetaOffset[0][iSc];
+        g.AddPoint(iSc*2.5, Z_out[iSc]);
+        g.SetPointError(g.GetN()-1, 0.8, 1.6);
+        T_out[iSc] = (teT[iSc] + teT[iSc+8])/2;
         nhb_out++;
       }
       else Z_out[iSc] = 0;
     }
 
     if (nhb_out > 2){
-      jTrig_out++;
-
+      c.cd();
+      g.Draw();
+      c.SaveAs(Form("../../data/step3/multihit/%lli_%lli.png", nhb_out, jTrig_out));
       CRTs3->Fill();
+      jTrig_out++;
     }
 
   }
@@ -128,6 +136,7 @@ void Analysis::Loop(){
   CRTs3->SetAutoSave(1000);
   CRTs3->Branch("iTrig",   &jTrig_out,  "iTrig/L");
   CRTs3->Branch("Z",       &Z_out,      "Z[8]/D");
+  CRTs3->Branch("T",       &T_out,      "T[8]/D");
   CRTs3->Branch("iSc",       &iSc_out,      "iSc[8]/I");
   CRTs3->Branch("nHitBar",   &nhb_out,    "nHitBar/I");
 
