@@ -47,8 +47,8 @@
     const float qTo = 1000; //deve essere 1000
     const int qBins = 1000; // deve essere 2000
 
+    const double pi = TMath::Pi();
 
-    
 
     
 #endif
