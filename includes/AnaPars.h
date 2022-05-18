@@ -1,7 +1,7 @@
 #ifndef AnaPars_H
 #define AnaPars_H
 
-    const int isRun182 = 0;
+    const int isRun182 = 0; //da togliere cristo
 
     const int centerMode = 0;
     const int strontiumMode = 0;

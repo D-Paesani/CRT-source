@@ -65,14 +65,14 @@ class HistBox{
     TFile *_outfile;
     TH1 **_histosObj;
     TString _histType, _label1, _label2, _histosTitle, _histosName, hTag, hTitleTag;
-    int _histN, hSkip;
+    int _histN, hSkip, _useFolder{1};
     ProcessFunction _processFunction; 
     NamerFunction _namerFunction;
 
   public:
    
     HistBox(
-      TFile *f,
+      TFile *f, int useFolder,
       TString histType, int histN,
       TString histosName, TString histosTitle, TString label1, TString label2, TString label3, TString label4,
       int xBins, double xMin, double xMax, 
@@ -86,7 +86,8 @@ class HistBox{
       _histType(histType),
       _histN(histN),
       _histosName(histosName),
-      _outfile(f)
+      _outfile(f),
+      _useFolder(useFolder)
     { 
       cout<<"-----> HistManager: HistBox constructor: ["<<_histType<<"] ["<<_histN<<"] ["<<_histosName<<"] ["<<_histosTitle<<"]"<<endl;
 
@@ -150,21 +151,24 @@ class HistBox{
     void ProcessBox(){
      
       _outfile->cd(); 
-      _histosDir = _outfile->mkdir(_histosName.Data(), "recreate"); 
-      _histosDir->cd();
+
+      if (_useFolder == 1) {
+        _histosDir = _outfile->mkdir(_histosName.Data(), "recreate"); 
+        _histosDir->cd();
+      }
 
       for (int k = 0; k < _histN; k++) {
 
         _histosObj[k]->GetXaxis()->SetTitle(_label1);
         _histosObj[k]->GetYaxis()->SetTitle(_label2);
         
-        _histosDir->cd();
+        if (_useFolder == 1) { _histosDir->cd(); } else { _outfile->cd(); }
 
         hSkip = 0; 
         _processFunction(_histosObj[k], k, hSkip);
         if (hSkip) {continue;}  
 
-        _histosDir->cd(); 
+        if (_useFolder == 1) { _histosDir->cd(); } else { _outfile->cd(); }
         _histosObj[k]->Write();
       } 
     }
@@ -177,6 +181,7 @@ class HistManager{
   private:
 
     TFile *_outfile;
+    int _useFoldersFlag{1};
 
     ProcessFunction procUser_def = &processFunc_def;
     NamerFunction namerUser_def = &namerFunc_def;
@@ -197,6 +202,8 @@ class HistManager{
     void SetOutFile(TFile *outfile) { _outfile = outfile; }
     TFile *GetOutFile() { return _outfile; }
     void CloseOutFile() { _outfile->Close(); }
+
+    void SetUseFolders(int i) {_useFoldersFlag = i;}
 
     unordered_map<string, HistBox *> HistBoxes;
 
@@ -229,7 +236,7 @@ void HistManager::AddHistBox( TString histType, int histN, TString histosName, T
   ProcessFunction processFunc, NamerFunction namerFunc
 ) {
   HistManager::HistBoxes.insert( {histosName.Data(), 
-    new HistBox(_outfile, histType, histN, histosName, histTitle, label1, label2, label3, label4, xBins, xMin, xMax, yBins, yMin, yMax, processFunc, namerFunc)
+    new HistBox(_outfile, _useFoldersFlag, histType, histN, histosName, histTitle, label1, label2, label3, label4, xBins, xMin, xMax, yBins, yMin, yMax, processFunc, namerFunc)
   } );
 };
 
