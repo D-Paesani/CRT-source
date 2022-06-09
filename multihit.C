@@ -71,7 +71,7 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
-      if ( (Vmax[hit] > 1800) || (Qval[hit] < 80) || templChi2[hit] > 10 ) continue;
+      if ( (Vmax[hit] > 1800) || (Qval[hit] < 200) ) continue;
 
       if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
 
@@ -94,10 +94,23 @@ void Analysis::LoopOverEntries() {
       else Z_out[iSc] = 0;
     }
 
-    if (nhb_out > 2){
+    if (nhb_out > 3){
       c.cd();
+      TF1 f("f", "pol1", -1, 21);
       g.Draw();
-      c.SaveAs(Form("../../data/step3/multihit/%lli_%lli.png", nhb_out, jTrig_out));
+      g.Fit("f", "0");
+      g.GetXaxis()->SetTitle("X [cm]");
+      g.GetYaxis()->SetTitle("Z [cm]");
+      g.SetMarkerStyle(2);
+      if (f.GetChisquare()/f.GetNDF() < 1.5){
+        g.Fit("f");
+        c.SaveAs(Form("../../data/step3/multihit/dritte/%lli_%lli.png", nhb_out, jTrig_out));
+        c.SaveAs(Form("../../data/step3/multihit/dritte/%lli_%lli.root", nhb_out, jTrig_out));
+      }
+      else {
+        c.SaveAs(Form("../../data/step3/multihit/storte/%lli_%lli.png", nhb_out, jTrig_out));
+        c.SaveAs(Form("../../data/step3/multihit/storte/%lli_%lli.root", nhb_out, jTrig_out));
+      }
       CRTs3->Fill();
       jTrig_out++;
     }

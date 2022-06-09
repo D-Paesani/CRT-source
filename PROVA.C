@@ -50,7 +50,7 @@ int qslice(double Q){
 
 //Pars
 
-  Long64_t max_evts = 30000;
+  Long64_t max_evts = 500000;
 
   #define doFitTemplate 1 // <------
   #define isRun182 0
@@ -212,7 +212,7 @@ void createHistBoxes() {
   HM.AddHistBox("th2f", 2*scintNum, "slewingFit", "slewing", "Q", "pC", "T", "s", qBins, qFrom, qTo, 800, 200, 400);
   HM.AddHistBox("th1f", scintNum,   "tsum", "td", "Time", "ns",  1000, 0, 1000, &times_proc, &NamerArray);
   HM.AddHistBox("th1f", scintNum,   "tdiff", "td", "Time", "ns",  1600, -20, 20, &times_proc, &NamerArray);
-  HM.AddHistBox("th1f", scintNum,   "tdifffit", "tdfit", "Time", "ns",  500, -25, 25, &times_proc, &NamerArray);
+  HM.AddHistBox("th1f", scintNum,   "tdifffit", "tdfit", "Time", "ns",  2000, -25, 25, &times_proc, &NamerArray);
   HM.AddHistBox("th1f", 2*scintNum, "bLineRms", "Base line rms", "", "mV", 200, 0.0, 10);
   HM.AddHistBox("th1f", 2*scintNum, "bLine", "Base line", "", "mV", 200, -5, 5);
   HM.AddHistBox("th1f", 2*scintNum, "chi2", "chi2", "", "", 100000, 0, 1e6);
@@ -400,7 +400,16 @@ void Analysis::LoopOverEntries() {
         TGraphErrors wgrn = wgr;
         gStyle->SetOptFit(111);
         int fitr = wgrn.Fit( "fitfn", "RQ" );
-        wgrn.Fit( "fitfn", "RQ" );
+        fitfn = TF1("fitfn2", spfn, pkT - 120, fitfn.GetX(pkV*0.68), 3);
+
+        fitfn.SetParameter(0, pkV);
+        fitfn.SetParLimits(0, pkV*0.9, pkV*1.1);
+        fitfn.SetParameter(1, pkT - 260); //320
+        fitfn.SetParLimits(1, pkT - 350, pkT - 150);
+        fitfn.SetParameter(2,  0.);
+        fitfn.SetParLimits(2, -brmsTmp*5, brmsTmp*5);
+
+        wgrn.Fit( "fitfn2", "RQ" );
 
         rcTf = fitfn.GetParameter(1) + templ_offs;
         //rcTf = fitfn.GetX(th) + templ_offs;
@@ -425,7 +434,7 @@ void Analysis::LoopOverEntries() {
         if ( gRandom->Uniform(0, etp/50) < 1 ) { //plot per diagnostica
         //if ( fitr == -1 ) {
           samples_dir->cd();
-          wgrn.SetTitle(Form("fit_%.2f", chi2));
+          wgrn.SetTitle(Form("fit_%.2f", pkT));
           TCanvas cc(Form("fit_%lld", jentry)); cc.cd();
           wgrn.SetLineWidth(1); wgrn.SetMarkerStyle(20); wgrn.SetMarkerSize(.4); wgrn.SetMarkerColor(kBlue); wgrn.Draw("AP");
           fitfn.SetLineColor(kRed); fitfn.Draw("same");

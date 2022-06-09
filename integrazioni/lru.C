@@ -197,7 +197,6 @@ void lru(){
 
   outFile->cd();
   c1->Write();
-  
 
 
   TGraphErrors *q_graph = new TGraphErrors(20*8, x2, y2, 0, y2_err);

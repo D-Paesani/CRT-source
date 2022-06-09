@@ -41,7 +41,7 @@
     const double maxVpeak = 1800;
     const double maxChi2 = 200000;
     const double maxQSharing = 40;
-    const double chEqReference = 450;
+    const double chEqReference = 480;
 
     const float qFrom = 0;
     const float qTo = 1000; //deve essere 1000

@@ -44,12 +44,12 @@ TTree *CRTs3;
 #define reindex_tree 0
 
 
-// double flat(const double *x, const double *par){
-//   double ampl = par[0];
-//   double len = par[1];
-//   if (x[0] < -len || x[0] > len) return 0;
-//   else return ampl;
-// } 
+ double flat(const double *x, const double *par){
+   double ampl = par[0];
+   double len = par[1];
+   if (x[0] < -len || x[0] > len) return 0;
+   else return ampl;
+ } 
 
 
 
@@ -190,22 +190,22 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
     histObj->Fit(&zFit, "RQ")   ;
     histObj->Fit(&zFit, "RQ")   ;
   } else {
-    zFit = TF1("l", "( TMath::TanH( (x-[0])/[1] ) - TMath::TanH( (x-[2]) /[1] ) ) * ([3]+[4]*x)", -200, 200); // non fitta mai
+    zFit = TF1("l", "( TMath::TanH( (x-[0])/[1] ) - TMath::TanH( (x-[2]) /[1] ) ) * ([3])", -90, 90); // non fitta mai
     zFit.SetParLimits(0, -200, -20);
     zFit.SetParLimits(1, 0, 20);
     zFit.SetParLimits(2, -10, 200);
     zFit.SetParLimits(3, 1, 1000);
-    zFit.SetParLimits(4, -2, 2);
     histObj->Fit(&zFit, "QR0");
-    histObj->Fit(&zFit, "QR0");
+    histObj->Fit(&zFit, "QR");
 
-    TF1 *flat_f = new TF1("step_f", "[0]*(x<[1])*(x>-[1])", -150, 150); ///////////anche così
-   //TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
+    //TF1 *flat_f = new TF1("step_f", "[0]*(x<[1])*(x>-[1])", -150, 150); ///////////anche così
+   TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
    TF1 *gauss_f = new TF1("gauss_f", "gaus", -100, 100);
    TF1Convolution *f_conv = new TF1Convolution(flat_f, gauss_f, -150, 150, true);
    f_conv->SetNofPointsFFT(1000);
-   cout << "ZOFF: " << (zFit.GetParameter(2) + zFit.GetParameter(0))/2 << endl;
-   TF1 *f = new TF1("f", *f_conv, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 - 90, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 + 90, f_conv->GetNpar());
+   //cout << "ZOFF: " << (zFit.GetParameter(2) + zFit.GetParameter(0))/2 << endl;
+   //TF1 *f = new TF1("f", *f_conv, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 - 90, (zFit.GetParameter(2) + zFit.GetParameter(0))/2 + 90, f_conv->GetNpar());
+   TF1 *f = new TF1("f", *f_conv, -90, 90, f_conv->GetNpar());
    f->SetParameters(200., 76, 6, -66, 6);
    f->SetParName(0, "Ampl_flat");
    f->SetParName(1, "Len");
@@ -216,6 +216,8 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 //   TF1 *flat = new TF1("f", "pol0", -80, 80);
 
    histObj->Fit("f", "RQ");
+
+*/
    barLen_out[0][histN] = 0;//f->GetParameter(1);
   }
 

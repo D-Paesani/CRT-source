@@ -35,25 +35,31 @@ void add_from_file(TGraphErrors *g, TString filename, TString canvasname, double
 
 void sz_vs_q(){
 
-  auto *g = new TGraphErrors();
+  auto *g1 = new TGraphErrors();
+  auto *g2 = new TGraphErrors();
 
   add_from_file(
-    g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    g1, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
     "zq_stronzio_centro.root",
     "c1",
     150, 300, 10, 0, 12.5, 1
   );
 
   add_from_file(
-    g, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
+    g2, "/home/ruben/Documents/frascati/CRT-analysis/data/plot/"
     "zq_183_esteso.root",
     "c1",
     200, 900, 50, 0, 14.3, 1.1
   );
 
+
+  auto *mg = new TMultiGraph();
+  mg->Add(g1);
+  mg->Add(g2);
+
   TF1 func("f", "TMath::Sqrt( [0]*[0] + [1]*[1]/x + [2]*[2]/(x*x))", 50, 1000);
   func.SetParameters(0.1, 5, 50);
-  func.SetParLimits(0, 0, 1);
+  func.SetParLimits(0, 0.047, 1);
   func.SetParLimits(1, 0, 10);
   func.SetParLimits(2, 0, 100);
   func.SetParName(0, "a");
@@ -63,8 +69,8 @@ void sz_vs_q(){
   gStyle->SetOptFit();
   auto *c1 = new TCanvas("sz_q_canvas", "c");
   c1->cd();
-  for(int i=0; i<3; i++) g->Fit(&func, "R");
-  g->Draw("AP");
+  for(int i=0; i<3; i++) mg->Fit(&func, "R");
+  mg->Draw("AP");
   cout << func.Eval(480) << endl;
 
 }

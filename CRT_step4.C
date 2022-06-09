@@ -11,7 +11,7 @@
 #define inTreeName "CRT"
 #define outTreeName "CRT"
 
-#define crtModulesDistance 10.0
+#define crtModulesDistance 30
 #define crtOffsetBottomX -0.0
 
 using namespace std;
@@ -48,7 +48,7 @@ void CRT_step4(TString runName) {
   int iSc_out[2];
   double Z_out[2], Q_out[4], T_out[4], X_out[2];
   CRTs4->Branch("iTrig", &iTrig_out, "iTrig/L");
-  CRTs4->Branch("iScint", &iSc_out, "iScint/I");
+  CRTs4->Branch("iScint", &iSc_out, "iScint[2]/I");
   CRTs4->Branch("Z", &Z_out, "Z[2]/D");
   CRTs4->Branch("X", &X_out, "X[2]/D");
   CRTs4->Branch("Q", &Q_out, "Q[4]/D");
@@ -117,10 +117,12 @@ void CRT_step4(TString runName) {
     double maxchi2 = max( max(anaB.X2[1], anaB.X2[0]), max(anaT.X2[1], anaT.X2[0]) );
 
     if (TMath::Abs(mtT-mtB) > 7) {continue;}
-    if (maxchi2 > 20) {continue;}
+
+    xT += gRandom->Uniform(-1.25, 1.25);
+    xB += gRandom->Uniform(-1.25, 1.25);
 
     double thetaR = TMath::ATan( (xT - xB) / (zT - zB) );
-    double thetaXY = TMath::ATan( (xT - xB) / crtModulesDistance ); 
+    double thetaXY = TMath::ATan( (xT - xB) / crtModulesDistance );
     double thetaZY = TMath::ATan( (zT - zB) / crtModulesDistance );
 
     if ( iSc_out[0] == iSc_out[1] )  {HM.Fill1d("thetaZYvert", 0, thetaZY);}

@@ -1,4 +1,4 @@
-f#define analysis_mod0_cxx
+#define analysis_mod0_cxx
 #include "analysis_mod0_dirac.h"
 //#include <TH2.h>
 //#include <TStyle.h>
@@ -74,6 +74,8 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
+
+   gErrorIgnoreLevel = 5000;
    if (fChain == 0) return;
 
    int skipfit;
@@ -124,7 +126,7 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
    //**************************************************************************
 
    int sum=0;
-   Long64_t nentries =fChain->GetEntriesFast();
+   Long64_t nentries = fChain->GetEntriesFast();
    //cout<<"nentries == "<<nentries<<endl;
    if(evflag==1)nentries = 5000;
 
@@ -561,9 +563,8 @@ int analysis_mod0::Get_iSiPM(int jRow, int jCol, int jSiPM)
 
 
 
-
 int main(){
 
-  analysis_mod0 *a = new analysis_mod0("run_98_all.root");
-  a->Loop("run_98_all_out.root");
+  analysis_mod0 *a = new analysis_mod0("../../data/dirac/step1/run_176_all.root");
+  a->Loop("../../data/dirac/step2/run_176_all.root");
 }
