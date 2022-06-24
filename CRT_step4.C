@@ -116,10 +116,10 @@ void CRT_step4(TString runName) {
 
     double maxchi2 = max( max(anaB.X2[1], anaB.X2[0]), max(anaT.X2[1], anaT.X2[0]) );
 
-    if (TMath::Abs(mtT-mtB) > 7) {continue;}
+    //if (TMath::Abs(mtT-mtB) > 7) {continue;}
 
-    xT += gRandom->Uniform(-1.25, 1.25);
-    xB += gRandom->Uniform(-1.25, 1.25);
+    //xT += gRandom->Uniform(-1.25, 1.25);
+    //xB += gRandom->Uniform(-1.25, 1.25);
 
     double thetaR = TMath::ATan( (xT - xB) / (zT - zB) );
     double thetaXY = TMath::ATan( (xT - xB) / crtModulesDistance );

@@ -138,7 +138,7 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
 
      if( jentry%10000==0 ) cout << "Number of processed events: " << jentry << endl;
      nrun    = run;
-     nsubrun = subrun; 
+     nsubrun = subrun;
      evnum   = jentry;
      _isLaser=0;
 
@@ -156,7 +156,7 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
 	       HitNum[jBoard][jChan] = 0;  
        }
      }
-     
+
      if( nhits>20 ){
        cout << "ERROR: too many hits in the DIRAC input ntuple " << nhits << ".. reducing size to 20" << endl;
        nhits = 20;
@@ -599,6 +599,6 @@ int analysis_mod0::Get_iSiPM(int jRow, int jCol, int jSiPM)
 
 int main(){
 
-  analysis_mod0 *a = new analysis_mod0("run_114_0.root");
-  a->Loop("run_114_0_out.root");
+  analysis_mod0 *a = new analysis_mod0("../../data/dirac/step1/run_165_all.root");
+  a->Loop("../../data/dirac/step2/run_165_all.root");
 }

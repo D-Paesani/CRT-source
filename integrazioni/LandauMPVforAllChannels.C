@@ -34,8 +34,8 @@ double MPV(TH1* histObj) {
   return l3.GetParameter(1);
 }
 
-void ruben(){
-  auto *f = new TFile("../../data/dirac/step2/run_176_all.root");
+void LandauMPVforAllChannels(){
+  auto *f = new TFile("../../data/dirac/step2/run_177_all.root");
 
 
   TH1F *charge[20];

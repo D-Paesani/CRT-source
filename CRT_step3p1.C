@@ -126,8 +126,8 @@ void createHistBoxes() {
     HM.AddHistBox("th1f", 2*scintNum, "chargeMip", "MIP charges",      "charge", "pC",    qBins, qFrom, qTo, &chargeMip_proc);
     HM.AddHistBox("th1f", 2*scintNum, "chargeTeMip","MIP template q",  "charge", "pC",    qBins, qFrom, qTo);
     HM.AddHistBox("th1f", 2*scintNum, "voltPeak",   "Wave peak",        "ampl", "V",       100, 0, 2000);
-    HM.AddHistBox("th1f", 2*scintNum, "timeMip",   "Mip times",        "time", "ns",       300, 100, 400,        &timeMip_proc);
-    HM.AddHistBox("th1f", 2*scintNum, "ptimeMip",   "Mip times",        "time", "ns",      200, 100, 400,        &ptimeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "timeMip",   "Mip times",        "time", "ns",       1500, 100, 3100,        &timeMip_proc);
+    HM.AddHistBox("th1f", 2*scintNum, "ptimeMip",   "Mip times",        "time", "ns",      1500, 100, 3100,        &ptimeMip_proc);
     HM.AddHistBox("th1f", scintNum,   "zetaMip",   "Mip zetas",        "zeta", "cm",      320, -scintL, scintL, &zetaMip_proc, &NamerArray);
 
 }

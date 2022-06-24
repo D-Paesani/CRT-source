@@ -217,7 +217,7 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 
    histObj->Fit("f", "RQ");
 
-*/
+
    barLen_out[0][histN] = 0;//f->GetParameter(1);
   }
 
