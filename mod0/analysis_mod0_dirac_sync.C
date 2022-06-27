@@ -92,9 +92,9 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
      return;
    }
 
-   //**************************************************************************
+   // **************************************************************************
    // Input files: channel maps + template to fit timing
-   //**************************************************************************
+   // **************************************************************************
 
    FILE *mapFile;
    mapFile = fopen("mod0_dirac_map.dat", "r");
@@ -110,18 +110,18 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
    TFile* f0 = new TFile("splines4_run39.root");
    TGraphErrors* gt = (TGraphErrors*)f0->Get("gtempl");
 
-   //**************************************************************************
+   // **************************************************************************
    // Output file
-   //**************************************************************************
+   // **************************************************************************
 
    cout << "Selected output file: " << OutputFile << endl;
    TFile *outFile = new TFile(OutputFile,"recreate");
    TTree *mod0 = new TTree("mod0","mod0");
    BookOutput(mod0); // Book histos and ntuple
 
-   //**************************************************************************
+   // **************************************************************************
    // Loop on entries
-   //**************************************************************************
+   // **************************************************************************
 
    int sum=0;
    Long64_t nentries =fChain->GetEntriesFast();
@@ -426,7 +426,7 @@ int analysis_mod0::GetValues(int jHit, int evflag)
       }
       myIdx++;
     }
-    Qtmp = Qsum; //*dt/50.;
+    Qtmp = Qsum; //  *dt/50.;
     Vtmp = wavetmp[Itmp];
   }
 
