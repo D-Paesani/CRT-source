@@ -35,7 +35,7 @@ double MPV(TH1* histObj) {
 }
 
 void LandauMPVforAllChannels(){
-  auto *f = new TFile("../../data/dirac/step2/run_177_all.root");
+  auto *f = new TFile("../../data/dirac/ecc.");
 
 
   TH1F *charge[20];

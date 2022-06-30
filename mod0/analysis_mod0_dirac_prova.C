@@ -92,9 +92,9 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
      return;
    }
 
-   //**************************************************************************
+   // **************************************************************************
    // Input files: channel maps + template to fit timing
-   //**************************************************************************
+   // **************************************************************************
 
    FILE *mapFile;
    mapFile = fopen("mod0_dirac_map.dat", "r");
@@ -110,9 +110,9 @@ void analysis_mod0::Loop(TString OutputFile, int evflag)
    TFile* f0 = new TFile("splines4_run39.root");
    TGraphErrors* gt = (TGraphErrors*)f0->Get("gtempl");
 
-   //**************************************************************************
+   // **************************************************************************
    // Output file
-   //**************************************************************************
+   // **************************************************************************
 
    cout << "Selected output file: " << OutputFile << endl;
    TFile *outFile = new TFile(OutputFile,"recreate");
