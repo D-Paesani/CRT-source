@@ -1,5 +1,3 @@
-// aggiornato 25 giugno --> data una pulita
-
 #include "includes/ana3.h"
 #include "includes/ana3.C"
 

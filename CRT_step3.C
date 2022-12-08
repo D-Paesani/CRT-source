@@ -32,7 +32,7 @@ HistManager HM;
 
 Long64_t nentries, nbytes, nb, ientry, jentry, jTrig_out;
 double **peakTimeOffset, **timeOffset, **timeOffset_out, **zetaOffset, **zetaOffset_out, **chargeEqual;
-double **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out, **ped_out, **pedErr_out, **timeDiff_out, **timeDiffErr_out;
+double **chargeEqualErr, **chargeEqual_out, **chargeEqualErr_out, **barLen_out, **barLenErr_out, **ped_out, **pedErr_out, **timeDiff_out, **timeDiffErr_out;
 double tDiff = 0, zeta=0, pseudotDiff = 0, pseudoZeta = 0;
 double *intQ, *pkV, *teQ, *teT, *teA, *teB, *teX2, *ped, *rcT;
 list<double ** > arrayList = {&intQ, &pkV, &teQ, &teT, &teA, &teB, &teX2, &ped, &rcT};
@@ -196,9 +196,16 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
     zFit.SetParLimits(2, -10, 200);
     zFit.SetParLimits(3, 1, 1000);
     zFit.SetParLimits(4, -2, 2);
-    histObj->Fit(&zFit, "QR0");
-    histObj->Fit(&zFit, "QR0");
+    histObj->Fit(&zFit, "QR");
+    histObj->Fit(&zFit, "QR");
 
+    double edge0 = zFit.GetParameter(2), edge1 = zFit.GetParameter(0);
+    double edgeerr0 = zFit.GetParError(2), edgeerr1 = zFit.GetParError(0);
+    cout << "Z edges " << edge0 << " " << edge1 << endl;
+    barLen_out[0][histN] = edge0 - edge1;
+    barLenErr_out[0][histN] = sqrt(edgeerr0*edgeerr0 + edgeerr1*edgeerr1);
+
+   /*
     TF1 *flat_f = new TF1("step_f", "[0]*(x<[1])*(x>-[1])", -150, 150); ///////////anche così
    //TF1 *flat_f = new TF1("flat_f", flat, -100, 100, 2);
    TF1 *gauss_f = new TF1("gauss_f", "gaus", -100, 100);
@@ -216,7 +223,8 @@ void zetaMip_proc(TH1* histObj, int histN, int& histSkipFlag) {
 //   TF1 *flat = new TF1("f", "pol0", -80, 80);
 
    histObj->Fit("f", "RQ");
-   barLen_out[0][histN] = 0;//f->GetParameter(1);
+   */
+   //barLen_out[0][histN] = f->GetParameter(1);
   }
 
   zetaOffset[0][histN] = centerMode ? zFit.GetParameter(1) : (zFit.GetParameter(2) + zFit.GetParameter(0))/2 ;
@@ -419,7 +427,7 @@ void Analysis::LoopOverEntries() {
 
     for(int hit = 0; hit < nCry; hit++){
 
-      if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
+      if ( (modulSel=="T" && iMod[hit]==0) || (modulSel=="B" && iMod[hit]==1) ) {continue;} // TOP = 1, BTM = 0
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;
 
@@ -478,18 +486,22 @@ void Analysis::LoopOverEntries() {
 
     if ( !Selection.isTimeGood(teT[iScHit])) {continue;}
 
-    tDiff = teT[iScHit] - teT[scintNum+iScHit]; 
+    tDiff = teT[iScHit] - teT[scintNum+iScHit];
 
-    zeta = tDiff*scintVp/2-zetaOffset[0][iScHit];
+    int mod;
+    if (modulSel=="T") mod = 1;
+    else mod = 0;
 
-    pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp / 2;
+    zeta = tDiff*scintVp[mod][iScHit]/2-zetaOffset[0][iScHit];
+
+    pseudoZeta = (rcT[iScHit] - rcT[iScHit + scintNum]) * scintVp[mod][iScHit] / 2;
 
     //if ( !Selection.isZetaGood(zeta) ) {continue;}
     //if ( 1 || !Selection.mipCutG(intQ, zeta, iScHit) ) {continue;} // ritorna già 1 se cutG non è enabled, non serve 1 || 
 
     jTrig_out = evnum;
 
-    fill_mip(iScHit);    
+    fill_mip(iScHit);
   }
 
   cout<<endl;
@@ -521,6 +533,7 @@ void Analysis::Loop(){
   timeDiff_out  = CSV.InitMatrix(1, scintNum);
   timeDiffErr_out  = CSV.InitMatrix(1, scintNum);
   barLen_out = CSV.InitMatrix(1, scintNum); 
+  barLenErr_out = CSV.InitMatrix(1, scintNum);
 
   ped_out = CSV.InitMatrix(2, scintNum);
   pedErr_out = CSV.InitMatrix(2, scintNum);
@@ -551,6 +564,7 @@ void Analysis::Loop(){
   CSV.Write(lutPrefix3 + runName + lutChEqName + ".csv", ',', chargeEqual_out, 2, scintNum, 4);
   CSV.Write(lutPrefix3 + runName + lutChEqErrName + ".csv", ',', chargeEqualErr_out, 2, scintNum, 4);
   CSV.Write(lutPrefix3 + runName + lutBarLenName + ".csv", ',', barLen_out, 1, scintNum, 4);
+  CSV.Write(lutPrefix3 + runName + lutBarLenErrName + ".csv", ',', barLenErr_out, 1, scintNum, 4);
   CSV.Write(lutPrefix3 + runName + lutTimeDiffName + ".csv", ',', timeDiff_out, 1, scintNum, 4);
   CSV.Write(lutPrefix3 + runName + lutTimeDiffErrName + ".csv", ',', timeDiffErr_out, 1, scintNum, 4);
 

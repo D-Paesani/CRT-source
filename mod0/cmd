@@ -1,0 +1,1 @@
+g++ analysis_mod0_dirac_prova.C -o g.x `root-config --cflags --glibs` 

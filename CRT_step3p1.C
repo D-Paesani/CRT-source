@@ -249,7 +249,7 @@ void Analysis::LoopOverEntries() {
     for(int hit = 0; hit < nCry; hit++){
 
 
-      if ( (modulSel=="B" && iMod[hit]==0) || (modulSel=="T" && iMod[hit]==1) ) {continue;} // TOP = 0, BTM = 1
+      if ( (modulSel=="T" && iMod[hit]==0) || (modulSel=="B" && iMod[hit]==1) ) {continue;} // TOP = 1, BTM = 0
 
 
       int hitSide=iSide[hit], hitScint = iScint[hit], hitN = hitSide*scintNum + hitScint;

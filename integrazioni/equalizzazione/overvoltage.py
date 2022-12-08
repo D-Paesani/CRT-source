@@ -16,7 +16,9 @@ print(old_volt)
 vop = pd.read_csv("vop.csv", header=None)
 print(vop)
 
-a = 3000/mpv * (p0 + p1*(old_volt - vop))
+b = (300/mpv)
+c = (p0 + p1*(old_volt - vop))
+a = b*c
 
 new_volt = vop + (a - p0)/p1
 

@@ -15,6 +15,7 @@
     const TString lutChEqName = "_chargEq";
     const TString lutChEqErrName = "_chargEqErr";
     const TString lutBarLenName = "_barLen";
+    const TString lutBarLenErrName = "_barLenErr";
     const TString lutTimeOffsName = "_timeOff";
     const TString lutPeakTimeOffsName = "_peakTimeOff";
     const TString lutZetaOffName = "_zetaOff";
@@ -30,10 +31,14 @@
     const int sideNum = 2;
     const int scintNum = 8;
 
-    const float scintVp = 14.3;
+    const float scintVp[2][8] = \
+    {
+      {14.30, 0, 14.50, 0, 14.16, 0, 13.75, 0},
+      {14.30, 0, 14.22, 0, 14.20, 0, 14.95, 0}
+    };
+
     const float scintL = 160.0;
     const float scintW = 2.5;
-
 
     const double minQCut = 50;
 
@@ -50,5 +55,4 @@
     const double pi = TMath::Pi();
 
 
-    
 #endif

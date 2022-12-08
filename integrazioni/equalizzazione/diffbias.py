@@ -10,7 +10,7 @@ p0, p1 = 1, 0.176
 mpv = pd.read_csv(f"mpv{run_old}.csv", header=None, sep=" ")
 print(mpv)
 
-target_charge = 5000
+target_charge = 4200
 
 a = target_charge/mpv * (p0)
 
